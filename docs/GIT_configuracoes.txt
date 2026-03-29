@@ -12,5 +12,44 @@ git init
 
 git config --global --add safe.directory F:/DEVELOPER_Projects/SRC/Fonte/IBG/Utensilios
 
+3️. Criar o primeiro commit
 git add .
 git commit -m "Primeiro commit do projeto"
+
+
+4️. Criar o repositório no GitHub
+
+No GitHub:
+
+New Repository
+Nome: Projeto_Matricula (ou outro)
+Private ou Public (como preferir)
+Desmarque opções de README, .gitignore ou LICENSE (porque já temos um repositório local inicializado)
+
+5️. Conectar o repositório local ao GitHub
+
+Pegue a URL que o GitHub fornecer, por exemplo:
+
+https://github.com/joaossa/utensilios.git
+
+git remote add origin https://github.com/joaossa/utensilios.git
+
+6️. Definir o branch principal como master (já que você usa master)
+
+Se o Git criou o branch main automaticamente, troque:
+
+git branch -M master
+
+7️. Enviar tudo para o GitHub
+git push --set-upstream origin master
+
+
+NOTA IMPORTANTE (AUTENTICAÇÃO)
+
+Como já vimos em problemas anteriores:
+
+✔ GitHub AGORA exige token pessoal (PAT)
+✔ Não aceita mais senha de conta
+✔ No Windows, se algo falhar, recomendo configurar:
+
+git config --global credential.helper manager
