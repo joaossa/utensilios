@@ -1,0 +1,18 @@
+node_modules
+node_modules/
+# Keep environment variables out of version control
+.env
+
+# Local editor settings
+.vscode/
+
+# Generated deploy artifacts and runtime diagnostics
+cecom.saude.api/bundle/
+cecom.saude.api/startup.log
+cecom.saude.api/hostinger-stages.log
+docs/hostinger/*.zip
+docs/hostinger/hostinger-stages.log
+docs/hostinger/assets/
+docs/hostinger/index.html
+docs/hostinger/.htaccess
+docs/hostinger/vite.svg

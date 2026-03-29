@@ -1,0 +1,16 @@
+## Iniciarlizar o Git
+
+✅ PASSO A PASSO: PUBLICAR UM PROJETO LOCAL NO GITHUB
+1️. Dentro da pasta do projeto
+
+Navegue até o diretório:
+
+cd "F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios"
+
+2️. Inicializar o repositório Git
+git init
+
+git config --global --add safe.directory F:/DEVELOPER_Projects/SRC/Fonte/IBG/Utensilios
+
+git add .
+git commit -m "Primeiro commit do projeto"
