@@ -1,0 +1,310 @@
+-- public.itens definition
+
+-- Drop table
+
+-- DROP TABLE public.itens;
+
+CREATE TABLE public.itens ( id serial4 NOT NULL, codigo varchar(50) NOT NULL, descricao varchar(255) NOT NULL, categoria varchar(100) NULL, estado varchar(20) DEFAULT 'bom'::character varying NOT NULL, localizacao varchar(150) NULL, data_cadastro timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, CONSTRAINT itens_codigo_key UNIQUE (codigo), CONSTRAINT itens_estado_check CHECK (((estado)::text = ANY ((ARRAY['novo'::character varying, 'bom'::character varying, 'manutencao'::character varying, 'danificado'::character varying])::text[]))), CONSTRAINT itens_pkey PRIMARY KEY (id));
+CREATE INDEX idx_itens_categoria ON public.itens USING btree (categoria);
+
+-- Permissions
+
+ALTER TABLE public.itens OWNER TO postgres;
+GRANT ALL ON TABLE public.itens TO postgres;
+
+
+-- public.membros definition
+
+-- Drop table
+
+-- DROP TABLE public.membros;
+
+CREATE TABLE public.membros ( id serial4 NOT NULL, nome varchar(150) NOT NULL, telefone varchar(20) NULL, cpf varchar(11) NULL, email varchar(150) NULL, tipo varchar(30) DEFAULT 'membro'::character varying NOT NULL, ativo bool DEFAULT true NOT NULL, data_cadastro timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, CONSTRAINT membros_pkey PRIMARY KEY (id), CONSTRAINT membros_tipo_check CHECK (((tipo)::text = ANY ((ARRAY['membro'::character varying, 'lideranca'::character varying, 'visitante_autorizado'::character varying])::text[]))));
+CREATE INDEX idx_membros_nome ON public.membros USING btree (nome);
+
+-- Permissions
+
+ALTER TABLE public.membros OWNER TO postgres;
+GRANT ALL ON TABLE public.membros TO postgres;
+
+
+-- public.emprestimos definition
+
+-- Drop table
+
+-- DROP TABLE public.emprestimos;
+
+CREATE TABLE public.emprestimos ( id serial4 NOT NULL, item_id int4 NOT NULL, membro_id int4 NOT NULL, data_retirada timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, data_prevista_devolucao timestamp NOT NULL, data_devolucao timestamp NULL, status varchar(20) DEFAULT 'ativo'::character varying NOT NULL, observacoes text NULL, CONSTRAINT emprestimos_pkey PRIMARY KEY (id), CONSTRAINT emprestimos_status_check CHECK (((status)::text = ANY ((ARRAY['ativo'::character varying, 'devolvido'::character varying, 'atrasado'::character varying])::text[]))), CONSTRAINT emprestimos_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.itens(id) ON DELETE RESTRICT, CONSTRAINT emprestimos_membro_id_fkey FOREIGN KEY (membro_id) REFERENCES public.membros(id) ON DELETE RESTRICT, CONSTRAINT fk_item FOREIGN KEY (item_id) REFERENCES public.itens(id) ON DELETE RESTRICT, CONSTRAINT fk_membro FOREIGN KEY (membro_id) REFERENCES public.membros(id) ON DELETE RESTRICT);
+CREATE INDEX idx_emprestimos_status ON public.emprestimos USING btree (status);
+CREATE UNIQUE INDEX uq_item_emprestimo_ativo ON public.emprestimos USING btree (item_id) WHERE ((status)::text = 'ativo'::text);
+
+-- Permissions
+
+ALTER TABLE public.emprestimos OWNER TO postgres;
+GRANT ALL ON TABLE public.emprestimos TO postgres;
+
+
+-- public.historico_item definition
+
+-- Drop table
+
+-- DROP TABLE public.historico_item;
+
+CREATE TABLE public.historico_item ( id serial4 NOT NULL, item_id int4 NOT NULL, tipo_evento varchar(30) NOT NULL, descricao text NULL, data_evento timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, usuario_responsavel varchar(150) NULL, CONSTRAINT historico_item_pkey PRIMARY KEY (id), CONSTRAINT historico_item_tipo_evento_check CHECK (((tipo_evento)::text = ANY ((ARRAY['emprestado'::character varying, 'devolvido'::character varying, 'manutencao'::character varying, 'cadastro'::character varying, 'atualizacao'::character varying])::text[]))), CONSTRAINT historico_item_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.itens(id) ON DELETE CASCADE);
+CREATE INDEX idx_historico_item ON public.historico_item USING btree (item_id);
+
+-- Permissions
+
+ALTER TABLE public.historico_item OWNER TO postgres;
+GRANT ALL ON TABLE public.historico_item TO postgres;
+
+
+-- public.item_imagens definition
+
+-- Drop table
+
+-- DROP TABLE public.item_imagens;
+
+CREATE TABLE public.item_imagens ( id serial4 NOT NULL, item_id int4 NOT NULL, url_imagem text NOT NULL, descricao varchar(255) NULL, ordem int4 DEFAULT 0 NULL, CONSTRAINT item_imagens_pkey PRIMARY KEY (id), CONSTRAINT item_imagens_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.itens(id) ON DELETE CASCADE);
+
+-- Permissions
+
+ALTER TABLE public.item_imagens OWNER TO postgres;
+GRANT ALL ON TABLE public.item_imagens TO postgres;
+
+
+CREATE UNIQUE INDEX emprestimos_pkey ON public.emprestimos USING btree (id);
+
+CREATE INDEX idx_emprestimos_status ON public.emprestimos USING btree (status);
+
+CREATE UNIQUE INDEX uq_item_emprestimo_ativo ON public.emprestimos USING btree (item_id) WHERE ((status)::text = 'ativo'::text);
+
+CREATE UNIQUE INDEX historico_item_pkey ON public.historico_item USING btree (id);
+
+CREATE INDEX idx_historico_item ON public.historico_item USING btree (item_id);
+
+CREATE UNIQUE INDEX item_imagens_pkey ON public.item_imagens USING btree (id);
+
+CREATE INDEX idx_itens_categoria ON public.itens USING btree (categoria);
+
+CREATE UNIQUE INDEX itens_codigo_key ON public.itens USING btree (codigo);
+
+CREATE UNIQUE INDEX itens_pkey ON public.itens USING btree (id);
+
+CREATE INDEX idx_membros_nome ON public.membros USING btree (nome);
+
+CREATE UNIQUE INDEX membros_pkey ON public.membros USING btree (id);
+
+
+-- public.emprestimos_id_seq definition
+
+-- DROP SEQUENCE public.emprestimos_id_seq;
+
+CREATE SEQUENCE public.emprestimos_id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 1
+	NO CYCLE;
+
+-- Permissions
+
+ALTER SEQUENCE public.emprestimos_id_seq OWNER TO postgres;
+GRANT ALL ON SEQUENCE public.emprestimos_id_seq TO postgres;
+
+
+-- public.historico_item_id_seq definition
+
+-- DROP SEQUENCE public.historico_item_id_seq;
+
+CREATE SEQUENCE public.historico_item_id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 1
+	NO CYCLE;
+
+-- Permissions
+
+ALTER SEQUENCE public.historico_item_id_seq OWNER TO postgres;
+GRANT ALL ON SEQUENCE public.historico_item_id_seq TO postgres;
+
+
+-- public.item_imagens_id_seq definition
+
+-- DROP SEQUENCE public.item_imagens_id_seq;
+
+CREATE SEQUENCE public.item_imagens_id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 1
+	NO CYCLE;
+
+-- Permissions
+
+ALTER SEQUENCE public.item_imagens_id_seq OWNER TO postgres;
+GRANT ALL ON SEQUENCE public.item_imagens_id_seq TO postgres;
+
+
+-- public.itens_id_seq definition
+
+-- DROP SEQUENCE public.itens_id_seq;
+
+CREATE SEQUENCE public.itens_id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 1
+	NO CYCLE;
+
+-- Permissions
+
+ALTER SEQUENCE public.itens_id_seq OWNER TO postgres;
+GRANT ALL ON SEQUENCE public.itens_id_seq TO postgres;
+
+
+-- public.membros_id_seq definition
+
+-- DROP SEQUENCE public.membros_id_seq;
+
+CREATE SEQUENCE public.membros_id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 1
+	NO CYCLE;
+
+-- Permissions
+
+ALTER SEQUENCE public.membros_id_seq OWNER TO postgres;
+GRANT ALL ON SEQUENCE public.membros_id_seq TO postgres;
+
+-- DROP TYPE public.emprestimos;
+
+CREATE TYPE public.emprestimos AS (
+	id serial4,
+	item_id int4,
+	membro_id int4,
+	data_retirada timestamp,
+	data_prevista_devolucao timestamp,
+	data_devolucao timestamp,
+	status varchar(20),
+	observacoes text);
+
+-- DROP TYPE public.historico_item;
+
+CREATE TYPE public.historico_item AS (
+	id serial4,
+	item_id int4,
+	tipo_evento varchar(30),
+	descricao text,
+	data_evento timestamp,
+	usuario_responsavel varchar(150));
+
+-- DROP TYPE public.item_imagens;
+
+CREATE TYPE public.item_imagens AS (
+	id serial4,
+	item_id int4,
+	url_imagem text,
+	descricao varchar(255),
+	ordem int4);
+
+-- DROP TYPE public.itens;
+
+CREATE TYPE public.itens AS (
+	id serial4,
+	codigo varchar(50),
+	descricao varchar(255),
+	categoria varchar(100),
+	estado varchar(20),
+	localizacao varchar(150),
+	data_cadastro timestamp);
+
+-- DROP TYPE public.membros;
+
+CREATE TYPE public.membros AS (
+	id serial4,
+	nome varchar(150),
+	telefone varchar(20),
+	cpf varchar(11),
+	email varchar(150),
+	tipo varchar(30),
+	ativo bool,
+	data_cadastro timestamp);
+
+-- DROP TYPE public._emprestimos;
+
+CREATE TYPE public._emprestimos (
+	INPUT = array_in,
+	OUTPUT = array_out,
+	RECEIVE = array_recv,
+	SEND = array_send,
+	ANALYZE = array_typanalyze,
+	ALIGNMENT = 8,
+	STORAGE = any,
+	CATEGORY = A,
+	ELEMENT = public.emprestimos,
+	DELIMITER = ',');
+
+-- DROP TYPE public._historico_item;
+
+CREATE TYPE public._historico_item (
+	INPUT = array_in,
+	OUTPUT = array_out,
+	RECEIVE = array_recv,
+	SEND = array_send,
+	ANALYZE = array_typanalyze,
+	ALIGNMENT = 8,
+	STORAGE = any,
+	CATEGORY = A,
+	ELEMENT = public.historico_item,
+	DELIMITER = ',');
+
+-- DROP TYPE public._item_imagens;
+
+CREATE TYPE public._item_imagens (
+	INPUT = array_in,
+	OUTPUT = array_out,
+	RECEIVE = array_recv,
+	SEND = array_send,
+	ANALYZE = array_typanalyze,
+	ALIGNMENT = 8,
+	STORAGE = any,
+	CATEGORY = A,
+	ELEMENT = public.item_imagens,
+	DELIMITER = ',');
+
+-- DROP TYPE public._itens;
+
+CREATE TYPE public._itens (
+	INPUT = array_in,
+	OUTPUT = array_out,
+	RECEIVE = array_recv,
+	SEND = array_send,
+	ANALYZE = array_typanalyze,
+	ALIGNMENT = 8,
+	STORAGE = any,
+	CATEGORY = A,
+	ELEMENT = public.itens,
+	DELIMITER = ',');
+
+-- DROP TYPE public._membros;
+
+CREATE TYPE public._membros (
+	INPUT = array_in,
+	OUTPUT = array_out,
+	RECEIVE = array_recv,
+	SEND = array_send,
+	ANALYZE = array_typanalyze,
+	ALIGNMENT = 8,
+	STORAGE = any,
+	CATEGORY = A,
+	ELEMENT = public.membros,
+	DELIMITER = ',');

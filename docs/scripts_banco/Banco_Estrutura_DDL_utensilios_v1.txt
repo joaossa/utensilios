@@ -1,0 +1,90 @@
+-- =========================================
+-- ITENS
+-- =========================================
+
+CREATE TABLE itens (
+  id SERIAL PRIMARY KEY,
+  codigo VARCHAR(50) NOT NULL UNIQUE,
+  descricao VARCHAR(255) NOT NULL,
+  categoria VARCHAR(100),
+  estado VARCHAR(20) NOT NULL DEFAULT 'bom'
+    CHECK (estado IN ('novo','bom','manutencao','danificado')),
+  localizacao VARCHAR(150),
+  data_cadastro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_itens_categoria ON itens(categoria);
+
+
+-- =========================================
+-- IMAGENS
+-- =========================================
+
+CREATE TABLE item_imagens (
+  id SERIAL PRIMARY KEY,
+  item_id INT NOT NULL REFERENCES itens(id) ON DELETE CASCADE,
+  url_imagem TEXT NOT NULL,
+  descricao VARCHAR(255),
+  ordem INT DEFAULT 0
+);
+
+
+-- =========================================
+-- MEMBROS
+-- =========================================
+
+CREATE TABLE membros (
+  id SERIAL PRIMARY KEY,
+  nome VARCHAR(150) NOT NULL,
+  telefone VARCHAR(20),
+  email VARCHAR(150),
+  tipo VARCHAR(30) NOT NULL DEFAULT 'membro'
+    CHECK (tipo IN ('membro','lideranca','visitante_autorizado')),
+  ativo BOOLEAN NOT NULL DEFAULT TRUE,
+  data_cadastro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_membros_nome ON membros(nome);
+
+
+-- =========================================
+-- EMPRESTIMOS
+-- =========================================
+
+CREATE TABLE emprestimos (
+  id SERIAL PRIMARY KEY,
+  item_id INT NOT NULL REFERENCES itens(id) ON DELETE RESTRICT,
+  membro_id INT NOT NULL REFERENCES membros(id) ON DELETE RESTRICT,
+  data_retirada TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  data_prevista_devolucao TIMESTAMP NOT NULL,
+  data_devolucao TIMESTAMP,
+  status VARCHAR(20) NOT NULL DEFAULT 'ativo'
+    CHECK (status IN ('ativo','devolvido','atrasado')),
+  observacoes TEXT,
+
+  CHECK (data_prevista_devolucao > data_retirada)
+);
+
+CREATE UNIQUE INDEX uq_item_emprestimo_ativo
+ON emprestimos(item_id)
+WHERE status = 'ativo';
+
+CREATE INDEX idx_emprestimos_membro ON emprestimos(membro_id);
+CREATE INDEX idx_emprestimos_status ON emprestimos(status);
+
+
+-- =========================================
+-- HISTORICO
+-- =========================================
+
+CREATE TABLE historico_item (
+  id SERIAL PRIMARY KEY,
+  item_id INT NOT NULL REFERENCES itens(id) ON DELETE CASCADE,
+  tipo_evento VARCHAR(30) NOT NULL
+    CHECK (tipo_evento IN ('emprestado','devolvido','manutencao','cadastro','atualizacao')),
+  descricao TEXT,
+  data_evento TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  usuario_responsavel VARCHAR(150)
+);
+
+CREATE INDEX idx_historico_item ON historico_item(item_id);

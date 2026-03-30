@@ -1,0 +1,54 @@
+
+npm create vue@latest
+
+ibg.utensilios.api
+
+ibg.utensilios.web
+
+(base) PS F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios> npm create vue@latest
+Need to install the following packages:
+create-vue@3.22.1
+Ok to proceed? (y) y
+
+
+> npx
+> create-vue
+
+T  Vue.js - The Progressive JavaScript Framework
+|
+o  Project name (target directory):
+|  ibg.utensilios.api
+|
+o  Use TypeScript?
+|  Yes
+|
+o  Select features to include in your project: (↑/↓ to navigate, space to select, a to toggle all, enter to confirm)
+|  Router (SPA development), Pinia (state management), Vitest (unit testing), Linter (error prevention), Prettier (code formatting)
+|
+o  Select experimental features to include in your project: (↑/↓ to navigate, space to select, a to toggle all, enter to confirm)
+|  none
+|
+o  Skip all example code and start with a blank Vue project?
+|  Yes
+
+Scaffolding project in F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.api...
+|
+—  Done. Now run:
+
+   cd ibg.utensilios.api
+   npm install
+   npm run format
+   npm run dev
+
+| Optional: Initialize Git in your project directory with:
+
+   git init && git add -A && git commit -m "initial commit"
+
+(base) PS F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios>
+
+
+
+
+npm install -g @vue/cli
+
+npm install -g @quasar/cli

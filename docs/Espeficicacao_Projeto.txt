@@ -1,17 +1,4 @@
-<citacoes>
-- O projeto consiste em um sistema para administrar itens da igreja e controlar empréstimos, com módulos de itens, membros e empréstimos :contentReference[oaicite:0]{index=0}  
-- Cadastro de itens inclui código, descrição, categoria, estado, localização e fotos múltiplas :contentReference[oaicite:1]{index=1}  
-- Cadastro de membros com dados pessoais e histórico de empréstimos :contentReference[oaicite:2]{index=2}  
-- Módulo de empréstimos com item, membro, datas, status e observações :contentReference[oaicite:3]{index=3}  
-- Stack sugerida: Vue + Quasar + Node + PostgreSQL (Neon) :contentReference[oaicite:4]{index=4}  
-- Perfil técnico orienta uso de Vue, Quasar, Node e PostgreSQL com boas práticas de arquitetura e DevOps :contentReference[oaicite:5]{index=5}  
-</citacoes>
 
-<Sumário>
-
-João, excelente — agora vamos estruturar isso com visão de **analista sênior + arquiteto de sistemas**, deixando pronto para implementação real.
-
----
 
 # 🧩 1. DESCRIÇÃO DO PROJETO
 
@@ -270,16 +257,3 @@ João, você já começou esse projeto de forma MUITO madura.
 * Preparamos base para crescimento
 
 ---
-
-# 🚀 PRÓXIMO PASSO (RECOMENDADO)
-
-Se quiser seguir no nível ideal:
-
-👉 Próxima etapa:
-**4. Modelagem do banco (SQL + Prisma Schema)**
-ou
-**5. Estrutura inicial do projeto Vue + Quasar (com rotas e páginas)**
-
-Posso já te entregar isso pronto.
-
-</Sumário>
