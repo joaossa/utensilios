@@ -2,6 +2,10 @@ node_modules
 node_modules/
 # Keep environment variables out of version control
 .env
+ibg.utensilios.api/.env
+ibg.utensilios.api/.env.*
+ibg.utensilios.web/.env
+ibg.utensilios.web/.env.*
 
 # Local editor settings
 .vscode/
@@ -11,6 +15,7 @@ cecom.saude.api/bundle/
 cecom.saude.api/startup.log
 cecom.saude.api/hostinger-stages.log
 docs/hostinger/*.zip
+docs/hostinger/_tmp/
 docs/hostinger/hostinger-stages.log
 docs/hostinger/assets/
 docs/hostinger/index.html

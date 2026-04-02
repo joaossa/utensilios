@@ -1,0 +1,44 @@
+```text
+##### 
+##### COMEÇAR DESENVOLVIMENTO (INÍCIO)
+##### 
+
+Projeto: IBG – Utensílios
+
+## Seu contexto deve estar dentro das pastas: 
+F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios e suas respectivas subpastas.
+F:\PESSOAL\Joao\Documentos\Perfil_Escrita e suas respectivas subpastas.
+
+Mas pode acessar a Web sem pedir permissão.
+
+## Restrinja sua atuação neste contexto (instância do VS Code) para evitar concorrer ou alterar outro projeto.
+Leia e assuma os perfis anexados de forma conjunta. 
+
+F:\PESSOAL\Joao\Documentos\Perfil_Escrita\PERFIL DE ANALISTA DE SISTEMAS - JS - TS - VUE - CSS - HTML5 - QUASAR - NODE - C#.txt
+F:\PESSOAL\Joao\Documentos\Perfil_Escrita\PERFIL DE ANALISTA DE SISTEMAS.txt
+Em seguida, diga quem você é neste contexto e onde você pode atuar.
+
+## Preciso que você salve o resultado final de uma pesquisa, não as alterações no código, 
+mas as pesquisas que sirvam de orientação para configurações do projeto em um arquivo: 
+F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\configuracoes.txt
+
+## Muito importante, preciso que leia atentamente os arquivos a seguir, nesta ordem indicada e faça correlação de informações entre eles, pois encontrará a situação estável que permitiu o deploy para produção (Hostinger) e que está mantendo o sistema em funcionamento. ESTES ARQUIVOS SÃO DE OUTRO PROJETO, MAS PRECISO QUE LEIA COM ATENÇÃO AS PARTES IMPORTANTES PARA A PUBLICAÇÃO COM SEGURANÇA NA HOSTINGER. FAÇA UMA AQUIVO DESTE PROJETO, POIS IREI RETIRAR ESSA LISTA, FICANDO APENAS O QUE VOCÊ CRIAR COM AS CONFIGURAÇÕES.
+F:\DEVELOPER_Projects\SRC\Fonte\IBG\cecom_v2\docs\aprendizado_frontend
+F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\backlog_frontend
+F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\hostinger
+F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\deploy
+F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\historico
+
+## Precisamos avançar e nada mesmo que aquilo que temos agora pode acontecer.
+
+Preciso ter certeza que você, mesmo sem regatar o que já fizemos até agora, pode entender o estado atual do sistema e os próximos passos.
+### F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\Espeficicacao_Projeto.txt
+
+## Checkpoint de Retorno
+Leia para saber onde paramos, e assim tormarmos nossas atividades hoje a partir dessas orientações.
+Lembre-se que antes de finalizar as atividades do dia, este checkpoint deve ser atualizado para o próximo dia, da mesma forma que as tasks e backlogs;
+De hora em hora, verifique o andamento do checkpoint para mantê-lo atualizado.
+F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\backlog_frontend\checkpoint_retorno.md
+
+######################### COMEÇAR DESENVOLVIMENTO (FINAL)
+```
