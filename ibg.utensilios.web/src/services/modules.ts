@@ -78,27 +78,37 @@ export type MembroPayload = {
   ativo: boolean
 }
 
-export type Emprestimo = {
+export type EmprestimoItem = {
   id: number
   item_id: number
-  membro_id: number
   quantidade: number
+  item_codigo?: string | null
+  item_descricao?: string | null
+}
+
+export type Emprestimo = {
+  id: number
+  membro_id: number
   data_retirada: string
   data_prevista_devolucao: string
   data_devolucao: string | null
   status: 'ativo' | 'devolvido' | 'atrasado'
   observacoes: string | null
-  item_codigo?: string | null
-  item_descricao?: string | null
   membro_nome?: string | null
+  itens: EmprestimoItem[]
+  total_itens: number
+  quantidade_total: number
+  itens_resumo: string
 }
 
 export type EmprestimoPayload = {
-  item_id: number
   membro_id: number
-  quantidade: number
   data_prevista_devolucao: string
   observacoes?: string | null
+  itens: Array<{
+    item_id: number
+    quantidade: number
+  }>
 }
 
 export type Historico = {
@@ -163,6 +173,10 @@ export function listMembros() {
   return authApiRequest<Membro[]>('/membros')
 }
 
+export function getMembro(id: number) {
+  return authApiRequest<Membro>(`/membros/${id}`)
+}
+
 export function createMembro(payload: MembroPayload) {
   return authApiRequest<Membro>('/membros', { method: 'POST', body: payload })
 }
@@ -177,6 +191,10 @@ export function deleteMembro(id: number) {
 
 export function listEmprestimos() {
   return authApiRequest<Emprestimo[]>('/emprestimos')
+}
+
+export function getEmprestimo(id: number) {
+  return authApiRequest<Emprestimo>(`/emprestimos/${id}`)
 }
 
 export function createEmprestimo(payload: EmprestimoPayload) {
@@ -197,6 +215,10 @@ export function deleteEmprestimo(id: number) {
 
 export function listHistorico() {
   return authApiRequest<Historico[]>('/historico')
+}
+
+export function getHistorico(id: number) {
+  return authApiRequest<Historico>(`/historico/${id}`)
 }
 
 export function createHistorico(payload: HistoricoPayload) {

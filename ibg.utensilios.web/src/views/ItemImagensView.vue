@@ -129,6 +129,10 @@ async function setSelectedFile(file: File | null | undefined) {
     return
   }
 
+  if (!file.type || !file.type.startsWith('image/')) {
+    throw new Error('Selecione apenas arquivos de imagem.')
+  }
+
   selectedFileLabel.value = file.name
   form.value.arquivo_base64 = await fileToBase64(file)
   form.value.nome_arquivo = file.name
@@ -311,7 +315,7 @@ onMounted(() => {
           <h1>Imagens</h1>
           <p v-if="item" class="module-total">{{ item.codigo }} - <strong>{{ item.descricao }}</strong></p>
         </div>
-        <button type="button" class="module-exit" @click="goToList">Voltar para lista</button>
+        <button type="button" class="module-exit" @click="goToList">Voltar</button>
       </header>
 
       <section class="panel-card">
@@ -335,40 +339,31 @@ onMounted(() => {
 
             <div class="upload-actions">
               <button type="button" class="upload-button upload-button-primary" @click="openCameraPicker">
-                Usar camera
+                Câmara
               </button>
               <button type="button" class="upload-button upload-button-secondary" @click="openLibraryPicker">
-                Escolher arquivo
+                Arquivos
               </button>
             </div>
 
             <small v-if="selectedFileLabel" class="field-help">{{ selectedFileLabel }}</small>
           </label>
 
-          <label class="field field-span-2">
-            <span>Descrição</span>
-            <input v-model="form.descricao" maxlength="255" />
-          </label>
+          <div class="field-row field-span-2">
+            <label class="field descricao-field">
+              <span>Descrição</span>
+              <input v-model="form.descricao" maxlength="255" />
+            </label>
 
-          <label class="field">
-            <span>Ordem de exibicao</span>
-            <input v-model="form.ordem_input" inputmode="numeric" autocomplete="off" />
-          </label>
+            <label class="field ordem-field">
+              <span>Ordem</span>
+              <input v-model="form.ordem_input" inputmode="numeric" autocomplete="off" />
+            </label>
+          </div>
 
           <div class="feedback-group">
             <p v-if="feedback" class="feedback success">{{ feedback }}</p>
             <p v-if="errorMessage" class="feedback error">{{ errorMessage }}</p>
-            <div v-if="pendingDeleteId !== null" class="feedback warning">
-              <p class="confirm-copy">Confirme a exclusao da imagem selecionada.</p>
-              <div class="confirm-actions">
-                <button type="button" class="danger-button" @click="confirmDelete">
-                  Confirmar exclusao
-                </button>
-                <button type="button" class="ghost-button" @click="clearDeleteRequest">
-                  Cancelar
-                </button>
-              </div>
-            </div>
           </div>
 
           <button type="submit" class="primary-button" :disabled="!canSubmit">
@@ -381,44 +376,102 @@ onMounted(() => {
         <p v-if="loading" class="status-copy">Carregando imagens...</p>
         <div v-else-if="imagens.length > 0" class="list-grid">
           <article v-for="imagem in imagens" :key="imagem.id" class="list-card">
-            <img
-              v-if="imagem.imagem_src"
-              class="image-preview"
-              :src="imagem.imagem_src"
-              :alt="imagem.descricao || 'Imagem do item'"
-            />
-            <p class="status-copy">{{ imagem.nome_arquivo || 'Imagem sem nome de arquivo' }}</p>
-            <p class="status-copy">{{ imagem.descricao || 'Sem descricao' }}</p>
-            <div class="list-actions">
-              <button type="button" class="ghost-button" @click="populateForm(imagem)">Editar</button>
-              <button type="button" class="danger-button" @click="handleDelete(imagem)">Excluir</button>
+            <div class="image-frame">
+              <img
+                v-if="imagem.imagem_src"
+                class="image-preview"
+                :src="imagem.imagem_src"
+                :alt="imagem.descricao || 'Imagem do item'"
+              />
+
+              <div class="image-actions">
+                <button
+                  type="button"
+                  class="icon-button"
+                  title="Editar imagem"
+                  aria-label="Editar imagem"
+                  @click="populateForm(imagem)"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 20h4l10-10-4-4L4 16v4Zm3.2-1.5H5.5v-1.7l8.1-8.1 1.7 1.7-8.1 8.1ZM19 9l-4-4 1.2-1.2a1.7 1.7 0 0 1 2.4 0l1.6 1.6a1.7 1.7 0 0 1 0 2.4L19 9Z"/>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="icon-button icon-button-danger"
+                  title="Excluir imagem"
+                  aria-label="Excluir imagem"
+                  @click="handleDelete(imagem)"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v8h-2V9Zm4 0h2v8h-2V9ZM7 9h2v8H7V9Zm-1 11h12l1-13H5l1 13Z"/>
+                  </svg>
+                </button>
+              </div>
             </div>
+
+            <p class="status-copy">{{ imagem.descricao || 'Sem descricao' }}</p>
           </article>
         </div>
       </section>
     </section>
+
+    <div v-if="pendingDeleteImage" class="modal-backdrop" @click.self="clearDeleteRequest">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="delete-image-title">
+        <div class="modal-copy">
+          <h2 id="delete-image-title">Confirmar exclusao</h2>
+          <p>Deseja excluir a imagem selecionada?</p>
+        </div>
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="icon-button icon-button-danger modal-icon"
+            title="Confirmar exclusao"
+            aria-label="Confirmar exclusao"
+            @click="confirmDelete"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M9.55 18.2 4.8 13.45l1.4-1.4 3.35 3.35 8.25-8.25 1.4 1.4-9.65 9.65Z"/>
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="icon-button modal-icon"
+            title="Cancelar exclusao"
+            aria-label="Cancelar exclusao"
+            @click="clearDeleteRequest"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m12 10.6 4.95-4.95 1.4 1.4L13.4 12l4.95 4.95-1.4 1.4L12 13.4l-4.95 4.95-1.4-1.4L10.6 12 5.65 7.05l1.4-1.4L12 10.6Z"/>
+            </svg>
+          </button>
+        </div>
+      </section>
+    </div>
   </main>
 </template>
 
 <style scoped>
 .module-page { min-height: 100vh; background:
   radial-gradient(circle at top left, rgba(0, 138, 124, 0.12), transparent 34%),
-  linear-gradient(180deg, #f3f7f7 0%, #edf3f4 100%); padding: clamp(16px, 3vw, 28px); box-sizing: border-box; }
-.module-shell { width: min(100%, 1180px); margin: 0 auto; display: grid; gap: 18px; }
-.module-header, .panel-card { background: rgba(255, 255, 255, 0.94); border: 1px solid rgba(219, 228, 232, 0.95); border-radius: 24px; box-shadow: 0 14px 30px rgba(15, 35, 33, 0.07); }
-.module-header { padding: clamp(18px, 2.8vw, 28px); display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
+  linear-gradient(180deg, #f3f7f7 0%, #edf3f4 100%); padding: clamp(12px, 2.4vw, 18px); box-sizing: border-box; }
+.module-shell { width: min(100%, 480px); margin: 0 auto; display: grid; gap: 12px; }
+.module-header, .panel-card { background: rgba(255, 255, 255, 0.94); border: 1px solid rgba(219, 228, 232, 0.95); border-radius: 20px; box-shadow: 0 10px 22px rgba(15, 35, 33, 0.07); }
+.module-header { padding: clamp(14px, 2.4vw, 18px); display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
 .module-header-copy { display: grid; gap: 8px; }
-.module-header h1 { margin: 0; font-size: clamp(1.8rem, 3vw, 2.4rem); color: #172033; }
+.module-header h1 { margin: 0; font-size: clamp(1.45rem, 2.8vw, 1.8rem); color: #172033; }
 .module-total, .status-copy, .field-help { margin: 0; color: #536579; line-height: 1.6; }
 .module-exit, .primary-button, .ghost-button, .danger-button, .upload-button { min-height: 44px; border-radius: 999px; padding: 0 16px; font-weight: 700; font: inherit; }
 .module-exit, .ghost-button, .upload-button-secondary { border: 1px solid #c8d5d9; background: #fff; color: #172033; }
 .primary-button, .upload-button-primary { border: 0; background: linear-gradient(135deg, #008a7c 0%, #0f766e 100%); color: #fff; }
 .danger-button { border: 1px solid #fecaca; background: #fff1f2; color: #b91c1c; }
-.panel-card { padding: 24px; display: grid; gap: 20px; }
-.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.panel-card { padding: 14px; display: grid; gap: 14px; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .field { display: grid; gap: 8px; }
 .field span { color: #314255; font-weight: 700; }
-.field input { min-height: 46px; border-radius: 14px; border: 1px solid #d6e0e4; background: #f7fbfb; padding: 0 14px; font: inherit; }
+.field input { width: 100%; max-width: 100%; box-sizing: border-box; min-height: 46px; border-radius: 14px; border: 1px solid #d6e0e4; background: #f7fbfb; padding: 0 14px; font: inherit; }
+.field-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 84px); gap: 12px; align-items: end; }
+.descricao-field, .ordem-field { min-width: 0; }
 .native-file-input { display: none; }
 .upload-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .upload-button { display: inline-flex; align-items: center; justify-content: center; }
@@ -427,16 +480,26 @@ onMounted(() => {
 .feedback { margin: 0; padding: 12px 14px; border-radius: 14px; font-weight: 700; }
 .feedback.success { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
 .feedback.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
-.feedback.warning { background: #fff7ed; color: #9a3412; border: 1px solid #fdba74; display: grid; gap: 12px; }
-.confirm-copy { margin: 0; font-weight: 700; }
-.confirm-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .list-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
 .list-card { border-radius: 20px; border: 1px solid #dbe4e8; background: #fcfefe; padding: 18px; display: grid; gap: 12px; }
+.image-frame { position: relative; }
 .image-preview { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 16px; background: #e5eef0; }
-.list-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.image-actions { position: absolute; right: 10px; bottom: 10px; display: flex; gap: 8px; }
+.icon-button { width: 40px; height: 40px; border-radius: 12px; border: 1px solid rgba(200, 213, 217, 0.96); background: rgba(255, 255, 255, 0.96); color: #172033; display: inline-flex; align-items: center; justify-content: center; padding: 0; box-shadow: 0 8px 20px rgba(15, 35, 33, 0.16); }
+.icon-button svg { width: 18px; height: 18px; fill: currentColor; }
+.icon-button-danger { border-color: rgba(254, 202, 202, 0.96); background: rgba(255, 241, 242, 0.98); color: #b91c1c; }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.34); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.modal-card { width: min(100%, 420px); background: rgba(255, 255, 255, 0.98); border: 1px solid rgba(219, 228, 232, 0.95); border-radius: 20px; box-shadow: 0 14px 30px rgba(15, 35, 33, 0.12); padding: 22px; display: grid; gap: 18px; }
+.modal-copy { display: grid; gap: 8px; }
+.modal-copy h2 { margin: 0; color: #172033; }
+.modal-copy p { margin: 0; color: #536579; line-height: 1.6; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.modal-icon { width: 48px; height: 48px; }
 @media (max-width: 720px) {
   .module-header { flex-direction: column; }
   .module-exit, .primary-button, .ghost-button, .danger-button, .upload-button { width: 100%; }
   .form-grid { grid-template-columns: 1fr; }
+  .field-row { grid-template-columns: 1fr; }
+  .modal-actions { justify-content: flex-start; }
 }
 </style>

@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express'
-import { z } from 'zod'
+import { z, type ZodError } from 'zod'
 
 import { CreateMembroDTO, UpdateMembroDTO } from './membro.dto'
 import { MembroService } from './membro.service'
@@ -9,6 +9,10 @@ const IdParamDTO = z.object({
 })
 
 const service = new MembroService()
+
+function getFirstValidationMessage(error: ZodError) {
+  return error.issues[0]?.message || 'Dados invalidos para membro.'
+}
 
 export class MembroController {
   async list(_req: Request, res: Response) {
@@ -32,7 +36,7 @@ export class MembroController {
 
     if (!parsed.success) {
       return res.status(400).json({
-        message: 'Dados invalidos para membro.',
+        message: getFirstValidationMessage(parsed.error),
         errors: parsed.error.flatten(),
       })
     }
@@ -45,8 +49,15 @@ export class MembroController {
     const parsedParams = IdParamDTO.safeParse(req.params)
     const parsedBody = UpdateMembroDTO.safeParse(req.body)
 
-    if (!parsedParams.success || !parsedBody.success) {
-      return res.status(400).json({ message: 'Dados invalidos para atualizar membro.' })
+    if (!parsedParams.success) {
+      return res.status(400).json({ message: 'Identificador de membro invalido.' })
+    }
+
+    if (!parsedBody.success) {
+      return res.status(400).json({
+        message: getFirstValidationMessage(parsedBody.error),
+        errors: parsedBody.error.flatten(),
+      })
     }
 
     const membro = await service.update(parsedParams.data.id, parsedBody.data)

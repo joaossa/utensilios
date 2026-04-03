@@ -7,7 +7,21 @@ import { useAuthStore } from '@/stores/auth'
 const authStore = useAuthStore()
 const router = useRouter()
 
-const userName = computed(() => authStore.user?.email || 'usuario')
+const userFirstName = computed(() => {
+  const nomeCompleto = authStore.user?.nome?.trim()
+
+  if (nomeCompleto) {
+    return nomeCompleto.split(/\s+/)[0]
+  }
+
+  const email = authStore.user?.email?.trim()
+
+  if (email) {
+    return email.split('@')[0]
+  }
+
+  return 'Usuário'
+})
 
 const quickAreas = [
   { id: '01', title: 'Itens', routeName: 'items-create' },
@@ -32,18 +46,26 @@ function openArea(routeName: string) {
       <header class="hero-card">
         <div class="hero-grid">
           <div class="project-block">
-            <p class="eyebrow">Projeto IBG - Utensílios</p>
+            <p class="eyebrow">IBG - UTENSÍLIOS</p>
           </div>
 
           <div class="session-block">
             <div class="session-copy">
-              <p class="session-label">Usuário logado</p>
-              <p class="logged-user">{{ userName }}</p>
-            </div>
+              <div class="session-row">
+                <p class="session-label">Usuário:</p>
+                <p class="logged-user">{{ userFirstName }}</p>
+              </div>
 
-            <button type="button" class="logout-button" @click="handleLogout">
-              Sair
-            </button>
+              <button
+                type="button"
+                class="logout-button"
+                @click="handleLogout"
+                aria-label="Sair do sistema"
+                title="Sair do sistema"
+              >
+                <span class="material-icons" aria-hidden="true">logout</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -112,39 +134,36 @@ function openArea(routeName: string) {
   color: #0f766e;
 }
 
-.hero-support {
-  margin: 0;
-  max-width: 36rem;
-  color: #4f6473;
-  font-size: clamp(0.98rem, 1.3vw, 1.08rem);
-  line-height: 1.65;
-}
-
 .session-block {
   display: grid;
-  gap: 14px;
   justify-items: end;
   align-content: start;
 }
 
 .session-copy {
   width: min(100%, 320px);
-  display: grid;
-  gap: 6px;
-  justify-items: end;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 14px 16px;
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(0, 138, 124, 0.08), rgba(0, 138, 124, 0.02));
   border: 1px solid rgba(0, 138, 124, 0.12);
 }
 
+.session-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
 .session-label {
   margin: 0;
   color: #0f766e;
-  font-size: 0.76rem;
+  font-size: 0.92rem;
   font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
 }
 
 .logged-user {
@@ -152,18 +171,20 @@ function openArea(routeName: string) {
   color: #172033;
   font-size: clamp(0.98rem, 1.2vw, 1.06rem);
   font-weight: 700;
-  text-align: right;
+  text-align: left;
   overflow-wrap: anywhere;
 }
 
 .logout-button {
-  min-height: 46px;
-  padding: 0 18px;
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 999px;
-  border: 1px solid #c8d5d9;
-  background: #ffffff;
-  color: #0f172a;
-  font-weight: 700;
+  border: 1px solid rgba(15, 118, 110, 0.18);
+  background: rgba(255, 255, 255, 0.88);
+  color: #0f766e;
   box-shadow: 0 6px 18px rgba(15, 35, 33, 0.06);
   transition:
     transform 0.18s ease,
@@ -174,7 +195,7 @@ function openArea(routeName: string) {
 .logout-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 10px 22px rgba(15, 35, 33, 0.1);
-  border-color: #adc0c6;
+  border-color: rgba(15, 118, 110, 0.28);
 }
 
 .logout-button:focus-visible {
@@ -250,14 +271,6 @@ function openArea(routeName: string) {
     justify-items: start;
   }
 
-  .session-copy {
-    justify-items: start;
-  }
-
-  .logged-user {
-    text-align: left;
-  }
-
   .quick-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -268,16 +281,12 @@ function openArea(routeName: string) {
     border-radius: 20px;
   }
 
-  .hero-support {
-    font-size: 0.95rem;
-  }
-
   .session-copy {
     width: 100%;
   }
 
-  .logout-button {
-    width: 100%;
+  .session-row {
+    flex-wrap: wrap;
   }
 
   .quick-grid {

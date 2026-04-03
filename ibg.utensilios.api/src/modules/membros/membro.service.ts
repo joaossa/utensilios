@@ -1,4 +1,4 @@
-import { remapPgError, throwNotFound } from '../../db/db-errors'
+import { DbServiceError, DB_ERROR_CODES, remapPgError, throwNotFound } from '../../db/db-errors'
 import { db } from '../../db/knex'
 
 import type { CreateMembroInput, UpdateMembroInput } from './membro.dto'
@@ -12,6 +12,27 @@ type MembroRow = {
   tipo: 'membro' | 'lideranca' | 'visitante_autorizado'
   ativo: boolean
   data_cadastro: Date | string
+}
+
+type PgErrorLike = {
+  code?: unknown
+  constraint?: unknown
+}
+
+function remapMembroError(error: unknown): never {
+  const pgError = error as PgErrorLike
+  const code = typeof pgError?.code === 'string' ? pgError.code : ''
+  const constraint = typeof pgError?.constraint === 'string' ? pgError.constraint : ''
+
+  if (code === '23505' && constraint === 'idx_membros_email_unique') {
+    throw new DbServiceError('Ja existe um membro cadastrado com este e-mail.', DB_ERROR_CODES.UNIQUE_VIOLATION, 409)
+  }
+
+  if (code === '23505' && constraint === 'idx_membros_cpf_unique') {
+    throw new DbServiceError('Ja existe um membro cadastrado com este CPF.', DB_ERROR_CODES.UNIQUE_VIOLATION, 409)
+  }
+
+  remapPgError(error)
 }
 
 export class MembroService {
@@ -44,7 +65,7 @@ export class MembroService {
 
       return membro
     } catch (error) {
-      remapPgError(error)
+      remapMembroError(error)
     }
   }
 
@@ -68,7 +89,7 @@ export class MembroService {
 
       return membro as MembroRow
     } catch (error) {
-      remapPgError(error)
+      remapMembroError(error)
     }
   }
 
@@ -78,7 +99,7 @@ export class MembroService {
     try {
       await db('membros').where({ id }).del()
     } catch (error) {
-      remapPgError(error)
+      remapMembroError(error)
     }
   }
 }

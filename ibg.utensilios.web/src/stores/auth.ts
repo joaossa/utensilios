@@ -10,6 +10,14 @@ import {
 } from '@/utils/auth-session'
 
 type LoginResponse = AuthSession
+type CheckEmailResponse = {
+  encontrado: boolean
+  usuario: {
+    id: number
+    nome: string
+    email: string
+  }
+}
 
 export const useAuthStore = defineStore('auth', () => {
   const session = ref<AuthSession | null>(getStoredSession())
@@ -35,6 +43,19 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function checkEmail(email: string) {
+    loading.value = true
+
+    try {
+      return await apiRequest<CheckEmailResponse>('/auth/check-email', {
+        method: 'POST',
+        body: { email },
+      })
+    } finally {
+      loading.value = false
+    }
+  }
+
   function logout() {
     session.value = null
     clearSession()
@@ -45,6 +66,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     user,
     token,
+    checkEmail,
     login,
     logout,
   }

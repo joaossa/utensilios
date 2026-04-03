@@ -1,5 +1,5 @@
 IBG - Utensilios - pesquisa consolidada de configuracoes
-Consolidado em: 2026-04-01
+Consolidado em: 2026-04-02
 
 Escopo autorizado desta instancia:
 - F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios
@@ -21,7 +21,7 @@ Quem sou neste contexto:
 Onde posso atuar:
 - frontend, backend, banco, scripts e documentacao do `Utensilios`
 - arquivos de perfil autorizados
-- `cecom_v2` apenas para extrair licoes comprovadas de Hostinger
+- leitura do `cecom_v2` apenas para extrair licoes comprovadas de Hostinger
 
 Restricoes:
 - nao atuar fora das pastas autorizadas
@@ -34,15 +34,19 @@ Leitura na ordem pedida:
 1. perfis em `Perfil_Escrita`
 2. `cecom_v2\docs\aprendizado_frontend`
 3. `Utensilios\docs\backlog_frontend`
-4. `cecom_v2\docs\hostinger`
-5. `Utensilios\docs\Espeficicacao_Projeto.txt`
-6. `Utensilios\docs\backlog_frontend\checkpoint_retorno.md`
+4. `Utensilios\docs\hostinger`
+5. `Utensilios\docs\deploy`
+6. `Utensilios\docs\historico`
+7. `Utensilios\docs\Espeficicacao_Projeto.txt`
+8. `Utensilios\docs\backlog_frontend\checkpoint_retorno.md`
 
-Correlacao complementar que fechou a pesquisa:
+Correlacao complementar usada para fechar a baseline:
 - `cecom_v2\docs\deploy\README.md`
 - `cecom_v2\docs\deploy\CHECKLIST.md`
 - `cecom_v2\docs\deploy\HOSTINGER_REFERENCIA.md`
 - `cecom_v2\docs\deploy\HISTORICO_HOSTINGER.md`
+- `cecom_v2\docs\hostinger\.htaccess`
+- `cecom_v2\docs\hostinger\build_hostinger_artifacts.ps1`
 - `ibg.utensilios.web\package.json`
 - `ibg.utensilios.web\vite.config.ts`
 - `ibg.utensilios.web\src\router\index.ts`
@@ -62,27 +66,26 @@ Achados importantes:
 - `Utensilios\docs\backlog_frontend` hoje contem apenas `checkpoint_retorno.md`
 - a referencia util de Hostinger no `cecom_v2` ficou em `docs\deploy` e `docs\hostinger`
 
-3. Confirmacoes oficiais verificadas na web em 2026-04-01
+3. Confirmacoes oficiais verificadas na web em 2026-04-02
 
 Hostinger:
 - `https://www.hostinger.com/support/how-to-migrate-a-node-js-application-to-hostinger/`
-  - aceita deploy de Node.js por GitHub ou ZIP
-  - o ZIP deve conter `package.json` e os arquivos necessarios
-  - `node_modules` deve ficar de fora
-  - a aplicacao precisa funcionar localmente antes da migracao
+  - o app Node deve funcionar localmente antes da migracao
+  - o pacote deve levar `package.json` e apenas os arquivos necessarios
+  - `node_modules` nao deve ir no ZIP
 - `https://www.hostinger.com/support/how-to-edit-or-add-environment-variables-after-deployment/`
-  - mudanca de variavel exige rebuild/redeploy
+  - apos alterar variavel no painel, a aplicacao precisa ser reimplantada
 
 Vite:
 - `https://vite.dev/guide/static-deploy.html`
-  - deploy estatico publica `dist`
+  - deploy estatico publica o conteudo de `dist`
 - `https://vite.dev/guide/env-and-mode`
-  - somente `VITE_*` chega ao client
-  - `VITE_*` nao deve conter segredos
+  - somente variaveis com prefixo `VITE_` chegam ao client
+  - `VITE_*` nao deve carregar segredo
   - `.env.production` tem prioridade sobre `.env`
 - `https://vite.dev/config/shared-options`
   - `base` padrao e `/`
-  - subpasta exige `base` coerente
+  - se a publicacao ficar em subpasta, o `base` precisa ser ajustado antes do build
 
 4. Ordem de confianca para decisao
 
@@ -102,6 +105,7 @@ Frontend:
 - fallback local atual em codigo: `http://localhost:3001`
 - `vite.config.ts` nao define `base`, entao hoje vale `/`
 - ja existe `docs\hostinger\.htaccess` pronto para fallback da SPA
+- `ibg.utensilios.web\.env.production` ainda nao existe
 
 API:
 - stack atual: Node.js + Express + TypeScript + Knex + pg
@@ -111,22 +115,29 @@ API:
 - bootstrap exige `DATABASE_URL` e `JWT_SECRET`
 - bind atual ja esta correto para hospedagem externa: `0.0.0.0`
 - healthcheck real ja existe em `GET /health`
+- `ibg.utensilios.api\.env.production` ainda nao existe, mas a estrategia principal aqui e painel da Hostinger + `.env.example` como referencia
 
 Banco:
 - PostgreSQL por `DATABASE_URL`
 - `knexfile.js` remove `schema=` da string antes de entregar ao driver
 - `knexfile.js` reaplica o schema via `searchPath`
 
-Estado funcional alinhado ao checkpoint:
+Estado funcional cruzado com especificacao e checkpoint:
+- objetivo do sistema continua sendo gestao de itens e emprestimos da igreja
+- o MVP funcional segue concentrado em:
+  - itens
+  - membros
+  - emprestimos
+  - historico
 - login real existe
 - painel real existe
 - autenticacao esta vinculada a `membros`
-- a frente principal continua sendo consolidacao e validacao dos CRUDs
+- os CRUDs principais ja existem e a frente natural agora e endurecimento funcional + deploy controlado
 
 6. O que o `cecom_v2` provou e vale aqui
 
 Licoes firmes:
-- validar build local antes de subir pacote
+- validar build local antes de subir qualquer pacote
 - publicar frontend e API como superficies separadas
 - nunca subir `.env` real, segredos ou `node_modules`
 - validar a API primeiro pelo healthcheck
@@ -134,13 +145,13 @@ Licoes firmes:
 - confiar mais em logs reais do que no diagnostico automatico do painel
 
 Aplicacao correta ao `Utensilios`:
-- manter a disciplina do `cecom_v2`
+- manter a disciplina operacional do `cecom_v2`
 - NAO copiar automaticamente o workaround final de `index.js` + `bundle/server.js`
-- primeiro usar a linha simples que o `Utensilios` ja suporta:
+- primeiro usar a linha simples que o `Utensilios` ja suporta hoje:
   - build local
   - runtime em `dist/src/server.js`
   - ZIP gerado localmente
-- so subir para workaround se a conta real da Hostinger provar a necessidade
+- so promover workaround se a conta real da Hostinger provar a necessidade
 
 7. Baseline segura para o frontend
 
@@ -197,7 +208,7 @@ Saidas esperadas:
 - `docs\hostinger\ibg.utensilios.api-hostinger.zip`
 - `docs\hostinger\ibg.utensilios.web-public_html.zip`
 
-9. Validacao objetiva executada nesta rodada
+9. Validacao objetiva executada em 2026-04-02
 
 Comando executado:
 - `powershell -ExecutionPolicy Bypass -File docs\hostinger\build_hostinger_artifacts.ps1`
@@ -210,9 +221,9 @@ Resultado:
 
 Hashes SHA256 desta rodada:
 - `ibg.utensilios.web-public_html.zip`
-  - `3A1B8FD41AA4B87EB00CB983F8D94FC08EB3CAF32FE3948BC9BE0264A65011D0`
+  - `48F057C3FA48A83A2068E3CD6930F2DD8485D84A5E029A1B2657AEDDF4D97379`
 - `ibg.utensilios.api-hostinger.zip`
-  - `E00849D8C595ADB631CDD3E8991D5FCC56AA1A9F2BEEE9F0AB2D550AC994763A`
+  - `084F6FFC60C73F11436982460F7B0ACEC60A5B311B08474160E9DD4BE66C4DCF`
 
 10. Regras operacionais adotadas
 
@@ -224,7 +235,7 @@ Deploy:
 
 Diagnostico:
 - primeiro build logs
-- depois runtime/logs reais
+- depois runtime e logs reais
 - por ultimo diagnostico automatico do painel
 
 Seguranca:
@@ -238,8 +249,7 @@ Seguranca:
 - falta criar ou congelar `ibg.utensilios.web\.env.production`
 - falta definir dominio do frontend e subdominio da API
 - falta decidir como as migrations vao rodar no banco de producao
-- falta criar checklist proprio de release do `Utensilios`
-- falta criar historico proprio de deploy do `Utensilios`
+- falta executar o primeiro deploy real do `Utensilios` para saber se o runtime simples em `dist/src/server.js` sobe sem workaround
 - `docs\Postgres.txt` contem credencial em texto puro e merece saneamento controlado
 
 12. Proximos passos recomendados
@@ -249,21 +259,23 @@ Seguranca:
 3. dentro de `DEPLOY-001`, fazer nesta ordem:
    - criar `ibg.utensilios.web\.env.production`
    - definir dominio da web e subdominio da API
-   - criar checklist de release do `Utensilios`
-   - criar historico de deploy do `Utensilios`
    - decidir e ensaiar a estrategia de migrations
    - realizar a primeira publicacao controlada
 4. apos publicar:
    - validar `/health`
    - validar login
    - validar CRUDs principais
+5. se a conta real da Hostinger falhar no runtime simples:
+   - registrar o erro real
+   - comparar com o historico do `cecom_v2`
+   - so entao decidir por `index.js` ou bundle
 
 Resumo final:
 - o `Utensilios` ja tem frontend, API, healthcheck, `.htaccess` e script de artefatos
-- o repositorio ja gera localmente os ZIPs de Hostinger com sucesso
+- o repositorio continua gerando localmente os ZIPs de Hostinger com sucesso em 2026-04-02
 - a linha segura para a primeira tentativa continua sendo:
   - frontend estatico em `public_html`
   - API em app Node separado
   - banco por `DATABASE_URL`
   - logs reais acima do painel
-- o proximo passo nao e inventar workaround; e fechar a configuracao real de producao
+- o proximo passo correto nao e inventar workaround; e fechar a configuracao real de producao e executar a primeira publicacao controlada

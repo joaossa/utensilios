@@ -1,18 +1,59 @@
+import type { Knex } from 'knex'
+
 import { DbServiceError, remapPgError, throwNotFound } from '../../db/db-errors'
 import { db } from '../../db/knex'
 
 import type { CreateEmprestimoInput, UpdateEmprestimoInput } from './emprestimo.dto'
 
-type EmprestimoRow = {
+type Executor = Knex | Knex.Transaction
+
+type EmprestimoHeaderRow = {
   id: number
-  item_id: number
   membro_id: number
-  quantidade: number
   data_retirada: Date | string
   data_prevista_devolucao: Date | string
   data_devolucao: Date | string | null
   status: 'ativo' | 'devolvido' | 'atrasado'
   observacoes: string | null
+}
+
+type EmprestimoQueryRow = {
+  id: number
+  membro_id: number
+  data_retirada: Date | string
+  data_prevista_devolucao: Date | string
+  data_devolucao: Date | string | null
+  status: 'ativo' | 'devolvido' | 'atrasado'
+  observacoes: string | null
+  membro_nome: string | null
+  detalhe_id: number | null
+  item_id: number | null
+  item_quantidade: number | null
+  item_codigo: string | null
+  item_descricao: string | null
+}
+
+type EmprestimoItemRecord = {
+  id: number
+  item_id: number
+  quantidade: number
+  item_codigo: string | null
+  item_descricao: string | null
+}
+
+type EmprestimoRecord = {
+  id: number
+  membro_id: number
+  data_retirada: Date | string
+  data_prevista_devolucao: Date | string
+  data_devolucao: Date | string | null
+  status: 'ativo' | 'devolvido' | 'atrasado'
+  observacoes: string | null
+  membro_nome: string | null
+  itens: EmprestimoItemRecord[]
+  total_itens: number
+  quantidade_total: number
+  itens_resumo: string
 }
 
 type ItemStockRow = {
@@ -24,10 +65,25 @@ type ItemStockRow = {
   quantidade_disponivel: number
 }
 
+type MembroRow = {
+  id: number
+  nome: string
+}
+
 const ACTIVE_LOAN_STATUSES = ['ativo', 'atrasado'] as const
 
-async function registrarHistorico(itemId: number, tipoEvento: string, descricao: string, usuario?: string) {
-  await db('historico_item').insert({
+function getExecutor(executor?: Executor) {
+  return executor ?? db
+}
+
+async function registrarHistorico(
+  executor: Executor | undefined,
+  itemId: number,
+  tipoEvento: string,
+  descricao: string,
+  usuario?: string,
+) {
+  await getExecutor(executor)('historico_item').insert({
     item_id: itemId,
     tipo_evento: tipoEvento,
     descricao,
@@ -35,19 +91,95 @@ async function registrarHistorico(itemId: number, tipoEvento: string, descricao:
   })
 }
 
-async function getItemStock(itemId: number, ignoreEmprestimoId?: number) {
-  const movimentacao = db('emprestimos as emp')
-    .select('emp.item_id')
-    .sum({ quantidade_emprestada: 'emp.quantidade' })
-    .whereIn('emp.status', ACTIVE_LOAN_STATUSES)
-    .groupBy('emp.item_id')
+function buildEmprestimoRowsQuery(executor?: Executor) {
+  return getExecutor(executor)('emprestimos as e')
+    .leftJoin('membros as m', 'm.id', 'e.membro_id')
+    .leftJoin('item_emprestimos as ie', 'ie.emprestimo_id', 'e.id')
+    .leftJoin('itens as i', 'i.id', 'ie.item_id')
+    .select<EmprestimoQueryRow[]>(
+      'e.id',
+      'e.membro_id',
+      'e.data_retirada',
+      'e.data_prevista_devolucao',
+      'e.data_devolucao',
+      'e.status',
+      'e.observacoes',
+      'm.nome as membro_nome',
+      'ie.id as detalhe_id',
+      'ie.item_id',
+      'ie.quantidade as item_quantidade',
+      'i.codigo as item_codigo',
+      'i.descricao as item_descricao',
+    )
+}
 
-  if (ignoreEmprestimoId !== undefined) {
-    movimentacao.whereNot('emp.id', ignoreEmprestimoId)
+function mapEmprestimos(rows: EmprestimoQueryRow[]) {
+  const emprestimos = new Map<number, EmprestimoRecord>()
+
+  for (const row of rows) {
+    let current = emprestimos.get(row.id)
+
+    if (!current) {
+      current = {
+        id: row.id,
+        membro_id: row.membro_id,
+        data_retirada: row.data_retirada,
+        data_prevista_devolucao: row.data_prevista_devolucao,
+        data_devolucao: row.data_devolucao,
+        status: row.status,
+        observacoes: row.observacoes,
+        membro_nome: row.membro_nome,
+        itens: [],
+        total_itens: 0,
+        quantidade_total: 0,
+        itens_resumo: '',
+      }
+      emprestimos.set(row.id, current)
+    }
+
+    if (row.detalhe_id !== null && row.item_id !== null && row.item_quantidade !== null) {
+      current.itens.push({
+        id: row.detalhe_id,
+        item_id: row.item_id,
+        quantidade: row.item_quantidade,
+        item_codigo: row.item_codigo,
+        item_descricao: row.item_descricao,
+      })
+      current.total_itens = current.itens.length
+      current.quantidade_total += row.item_quantidade
+    }
   }
 
-  const item = await db('itens as i')
-    .leftJoin(movimentacao.as('mov'), 'mov.item_id', 'i.id')
+  for (const emprestimo of emprestimos.values()) {
+    emprestimo.itens_resumo = emprestimo.itens
+      .map((item) => {
+        const nome = item.item_descricao ?? item.item_codigo ?? `Item ${item.item_id}`
+        return item.quantidade > 1 ? `${nome} (${item.quantidade})` : nome
+      })
+      .join(', ')
+  }
+
+  return Array.from(emprestimos.values())
+}
+
+function buildActiveLoanItemsSubquery(executor?: Executor, ignoreEmprestimoId?: number) {
+  const query = getExecutor(executor)('item_emprestimos as ie')
+    .join('emprestimos as emp', 'emp.id', 'ie.emprestimo_id')
+    .select('ie.item_id')
+    .sum({ quantidade_emprestada: 'ie.quantidade' })
+    .whereIn('emp.status', ACTIVE_LOAN_STATUSES)
+    .groupBy('ie.item_id')
+
+  if (ignoreEmprestimoId !== undefined) {
+    query.whereNot('emp.id', ignoreEmprestimoId)
+  }
+
+  return query.as('mov')
+}
+
+async function getItemStock(itemId: number, ignoreEmprestimoId?: number, executor?: Executor) {
+  const item = await getExecutor(executor)('itens as i')
+    .leftJoin(buildActiveLoanItemsSubquery(executor, ignoreEmprestimoId), 'mov.item_id', 'i.id')
     .select<ItemStockRow[]>(
       'i.id',
       'i.codigo',
@@ -66,6 +198,19 @@ async function getItemStock(itemId: number, ignoreEmprestimoId?: number) {
   return item
 }
 
+async function getMembroById(id: number, executor?: Executor) {
+  const membro = await getExecutor(executor)('membros')
+    .select<MembroRow[]>('id', 'nome')
+    .where({ id })
+    .first()
+
+  if (!membro) {
+    throwNotFound('Membro nao encontrado para emprestimo.')
+  }
+
+  return membro
+}
+
 function assertQuantidadeDisponivel(item: ItemStockRow, quantidade: number) {
   if (quantidade > item.quantidade_disponivel) {
     throw new DbServiceError(
@@ -76,214 +221,187 @@ function assertQuantidadeDisponivel(item: ItemStockRow, quantidade: number) {
   }
 }
 
+async function validateLoanItems(
+  items: Array<{ item_id: number; quantidade: number }>,
+  ignoreEmprestimoId?: number,
+  executor?: Executor,
+) {
+  const itemStocks = new Map<number, ItemStockRow>()
+
+  for (const loanItem of items) {
+    const itemStock = await getItemStock(loanItem.item_id, ignoreEmprestimoId, executor)
+    assertQuantidadeDisponivel(itemStock, loanItem.quantidade)
+    itemStocks.set(loanItem.item_id, itemStock)
+  }
+
+  return itemStocks
+}
+
 export class EmprestimoService {
   async list() {
-    return db('emprestimos as e')
-      .leftJoin('itens as i', 'i.id', 'e.item_id')
-      .leftJoin('membros as m', 'm.id', 'e.membro_id')
-      .select(
-        'e.*',
-        'i.codigo as item_codigo',
-        'i.descricao as item_descricao',
-        'm.nome as membro_nome',
-      )
+    const rows = await buildEmprestimoRowsQuery()
       .orderBy('e.data_retirada', 'desc')
+      .orderBy('ie.id', 'asc')
+
+    return mapEmprestimos(rows)
   }
 
   async create(input: CreateEmprestimoInput, usuario?: string) {
-    const itemRecord = await db('itens')
-      .select<{ id: number; codigo: string }[]>('id', 'codigo')
-      .where({ id: input.item_id })
-      .first()
-
-    const membroRecord = await db('membros')
-      .select<{ id: number; nome: string }[]>('id', 'nome')
-      .where({ id: input.membro_id })
-      .first()
-
-    if (!itemRecord) {
-      throwNotFound('Item nao encontrado para emprestimo.')
-    }
-
-    if (!membroRecord) {
-      throwNotFound('Membro nao encontrado para emprestimo.')
-    }
-
-    const item = itemRecord
-    const membro = membroRecord
-    const itemStock = await getItemStock(input.item_id)
-
-    assertQuantidadeDisponivel(itemStock, input.quantidade)
-
     try {
-      const [emprestimoRecord] = await db('emprestimos')
-        .insert({
-          item_id: input.item_id,
-          membro_id: input.membro_id,
-          quantidade: input.quantidade,
-          data_prevista_devolucao: input.data_prevista_devolucao,
-          observacoes: input.observacoes ?? null,
-          status: 'ativo',
-        })
-        .returning<EmprestimoRow[]>('*')
+      return await db.transaction(async (trx) => {
+        const membro = await getMembroById(input.membro_id, trx)
+        const itemStocks = await validateLoanItems(input.itens, undefined, trx)
 
-      if (!emprestimoRecord) {
-        throw new Error('Falha ao registrar emprestimo.')
-      }
+        const [emprestimoHeader] = await trx('emprestimos')
+          .insert({
+            membro_id: input.membro_id,
+            data_prevista_devolucao: input.data_prevista_devolucao,
+            observacoes: input.observacoes ?? null,
+            status: 'ativo',
+          })
+          .returning<EmprestimoHeaderRow[]>('*')
 
-      await registrarHistorico(
-        input.item_id,
-        'emprestado',
-        `Item ${item.codigo} emprestado para ${membro.nome} (${input.quantidade} unidade(s)).`,
-        usuario,
-      )
+        if (!emprestimoHeader) {
+          throw new Error('Falha ao registrar emprestimo.')
+        }
 
-      return emprestimoRecord
+        await trx('item_emprestimos').insert(
+          input.itens.map((item) => ({
+            emprestimo_id: emprestimoHeader.id,
+            item_id: item.item_id,
+            quantidade: item.quantidade,
+          })),
+        )
+
+        for (const loanItem of input.itens) {
+          const itemStock = itemStocks.get(loanItem.item_id)
+          await registrarHistorico(
+            trx,
+            loanItem.item_id,
+            'emprestado',
+            `Emprestimo #${emprestimoHeader.id}: item ${itemStock?.codigo ?? loanItem.item_id} emprestado para ${membro.nome} (${loanItem.quantidade} unidade(s)).`,
+            usuario,
+          )
+        }
+
+        return this.getById(emprestimoHeader.id, trx)
+      })
     } catch (error) {
       remapPgError(error)
     }
   }
 
-  async getById(id: number) {
-    const emprestimo = await db('emprestimos as e')
-      .leftJoin('itens as i', 'i.id', 'e.item_id')
-      .leftJoin('membros as m', 'm.id', 'e.membro_id')
-      .select(
-        'e.*',
-        'i.codigo as item_codigo',
-        'i.descricao as item_descricao',
-        'm.nome as membro_nome',
-      )
+  async getById(id: number, executor?: Executor) {
+    const rows = await buildEmprestimoRowsQuery(executor)
       .where('e.id', id)
-      .first()
+      .orderBy('ie.id', 'asc')
 
-    if (!emprestimo) {
+    if (rows.length === 0) {
       throwNotFound('Emprestimo nao encontrado.')
     }
 
-    return emprestimo
+    return mapEmprestimos(rows)[0]
   }
 
   async update(id: number, input: UpdateEmprestimoInput, usuario?: string) {
-    const emprestimoAtual = await db('emprestimos')
-      .select<EmprestimoRow[]>('*')
-      .where({ id })
-      .first()
-
-    if (!emprestimoAtual) {
-      throwNotFound('Emprestimo nao encontrado.')
-    }
-
-    if (input.item_id !== undefined) {
-      const item = await db('itens').select('id').where({ id: input.item_id }).first()
-
-      if (!item) {
-        throwNotFound('Item nao encontrado para emprestimo.')
-      }
-    }
-
-    if (input.membro_id !== undefined) {
-      const membro = await db('membros').select('id').where({ id: input.membro_id }).first()
-
-      if (!membro) {
-        throwNotFound('Membro nao encontrado para emprestimo.')
-      }
-    }
-
-    const nextItemId = input.item_id ?? emprestimoAtual.item_id
-    const nextQuantidade = input.quantidade ?? emprestimoAtual.quantidade
-
-    if (emprestimoAtual.status !== 'devolvido') {
-      const itemStock = await getItemStock(nextItemId, id)
-      assertQuantidadeDisponivel(itemStock, nextQuantidade)
-    }
+    const emprestimoAtual = await this.getById(id)
 
     try {
-      const [updated] = await db('emprestimos')
-        .where({ id })
-        .update(
-          {
-            ...(input.item_id !== undefined ? { item_id: input.item_id } : {}),
+      return await db.transaction(async (trx) => {
+        const nextMembroId = input.membro_id ?? emprestimoAtual.membro_id
+        const nextItems = input.itens ?? emprestimoAtual.itens.map((item) => ({
+          item_id: item.item_id,
+          quantidade: item.quantidade,
+        }))
+
+        await getMembroById(nextMembroId, trx)
+
+        if (emprestimoAtual.status !== 'devolvido') {
+          await validateLoanItems(nextItems, id, trx)
+        }
+
+        await trx('emprestimos')
+          .where({ id })
+          .update({
             ...(input.membro_id !== undefined ? { membro_id: input.membro_id } : {}),
-            ...(input.quantidade !== undefined ? { quantidade: input.quantidade } : {}),
             ...(input.data_prevista_devolucao !== undefined
               ? { data_prevista_devolucao: input.data_prevista_devolucao }
               : {}),
             ...(input.observacoes !== undefined ? { observacoes: input.observacoes ?? null } : {}),
-          },
-          ['*'],
-        )
+          })
 
-      if (!updated) {
-        throw new Error('Falha ao atualizar emprestimo.')
-      }
+        if (input.itens !== undefined) {
+          await trx('item_emprestimos').where({ emprestimo_id: id }).del()
+          await trx('item_emprestimos').insert(
+            input.itens.map((item) => ({
+              emprestimo_id: id,
+              item_id: item.item_id,
+              quantidade: item.quantidade,
+            })),
+          )
+        }
 
-      await registrarHistorico(
-        updated.item_id,
-        'atualizacao',
-        `Emprestimo ${updated.id} atualizado.`,
-        usuario,
-      )
+        const updated = await this.getById(id, trx)
 
-      return updated as EmprestimoRow
+        for (const item of updated.itens) {
+          await registrarHistorico(
+            trx,
+            item.item_id,
+            'atualizacao',
+            `Emprestimo #${updated.id} atualizado para o item ${item.item_codigo ?? item.item_id}.`,
+            usuario,
+          )
+        }
+
+        return updated
+      })
     } catch (error) {
       remapPgError(error)
     }
   }
 
   async returnEmprestimo(id: number, usuario?: string) {
-    const emprestimoRecord = await db('emprestimos')
-      .select<EmprestimoRow[]>('*')
-      .where({ id })
-      .first()
-
-    if (!emprestimoRecord) {
-      throwNotFound('Emprestimo nao encontrado.')
-    }
-
-    const emprestimo = emprestimoRecord
+    const emprestimo = await this.getById(id)
 
     if (emprestimo.status === 'devolvido') {
       throw new Error('Este emprestimo ja foi devolvido.')
     }
 
-    const item = await db('itens').select<{ codigo: string }[]>('codigo').where({ id: emprestimo.item_id }).first()
-    const membro = await db('membros').select<{ nome: string }[]>('nome').where({ id: emprestimo.membro_id }).first()
+    const membroNome = emprestimo.membro_nome ?? 'membro'
 
-    const [updated] = await db('emprestimos')
-      .where({ id })
-      .update(
-        {
-          data_devolucao: new Date(),
-          status: 'devolvido',
-        },
-        ['*'],
-      )
+    try {
+      return await db.transaction(async (trx) => {
+        await trx('emprestimos')
+          .where({ id })
+          .update({
+            data_devolucao: new Date(),
+            status: 'devolvido',
+          })
 
-    if (!updated) {
-      throw new Error('Falha ao atualizar emprestimo.')
+        for (const item of emprestimo.itens) {
+          await registrarHistorico(
+            trx,
+            item.item_id,
+            'devolvido',
+            `Item ${item.item_codigo ?? item.item_id} devolvido por ${membroNome} (${item.quantidade} unidade(s)) no emprestimo #${emprestimo.id}.`,
+            usuario,
+          )
+        }
+
+        return this.getById(id, trx)
+      })
+    } catch (error) {
+      remapPgError(error)
     }
-
-    await registrarHistorico(
-      emprestimo.item_id,
-      'devolvido',
-      `Item ${item?.codigo ?? emprestimo.item_id} devolvido por ${membro?.nome ?? 'membro'} (${emprestimo.quantidade} unidade(s)).`,
-      usuario,
-    )
-
-    return updated as EmprestimoRow
   }
 
   async remove(id: number) {
-    const emprestimo = await db('emprestimos')
-      .select<EmprestimoRow[]>('*')
-      .where({ id })
-      .first()
+    await this.getById(id)
 
-    if (!emprestimo) {
-      throwNotFound('Emprestimo nao encontrado.')
+    try {
+      await db('emprestimos').where({ id }).del()
+    } catch (error) {
+      remapPgError(error)
     }
-
-    await db('emprestimos').where({ id }).del()
   }
 }

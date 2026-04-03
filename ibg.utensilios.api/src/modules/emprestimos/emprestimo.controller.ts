@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express'
-import { z } from 'zod'
+import { z, type ZodError } from 'zod'
 
 import { CreateEmprestimoDTO, UpdateEmprestimoDTO } from './emprestimo.dto'
 import { EmprestimoService } from './emprestimo.service'
@@ -9,6 +9,10 @@ const IdParamDTO = z.object({
 })
 
 const service = new EmprestimoService()
+
+function getFirstValidationMessage(error: ZodError) {
+  return error.issues[0]?.message || 'Dados invalidos para emprestimo.'
+}
 
 export class EmprestimoController {
   async list(_req: Request, res: Response) {
@@ -32,7 +36,7 @@ export class EmprestimoController {
 
     if (!parsed.success) {
       return res.status(400).json({
-        message: 'Dados invalidos para emprestimo.',
+        message: getFirstValidationMessage(parsed.error),
         errors: parsed.error.flatten(),
       })
     }
@@ -45,8 +49,15 @@ export class EmprestimoController {
     const parsedParams = IdParamDTO.safeParse(req.params)
     const parsedBody = UpdateEmprestimoDTO.safeParse(req.body)
 
-    if (!parsedParams.success || !parsedBody.success) {
-      return res.status(400).json({ message: 'Dados invalidos para atualizar emprestimo.' })
+    if (!parsedParams.success) {
+      return res.status(400).json({ message: 'Identificador de emprestimo invalido.' })
+    }
+
+    if (!parsedBody.success) {
+      return res.status(400).json({
+        message: getFirstValidationMessage(parsedBody.error),
+        errors: parsedBody.error.flatten(),
+      })
     }
 
     const emprestimo = await service.update(parsedParams.data.id, parsedBody.data, req.user?.email)

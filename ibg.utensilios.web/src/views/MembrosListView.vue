@@ -3,65 +3,25 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar, type QTableProps } from 'quasar'
 
-import { deleteItem, listItens, type Item } from '@/services/modules'
+import { deleteMembro, listMembros, type Membro } from '@/services/modules'
+import { formatPhoneInput } from '@/utils/membro-fields'
 
 const router = useRouter()
 const $q = useQuasar()
 
-const items = ref<Item[]>([])
+const membros = ref<Membro[]>([])
 const loading = ref(false)
 const errorMessage = ref('')
 const searchTerm = ref('')
-const pendingDeleteItem = ref<Item | null>(null)
+const pendingDeleteMember = ref<Membro | null>(null)
+const deleting = ref(false)
 const pagination = ref({
   rowsPerPage: 0,
-  sortBy: 'descricao',
+  sortBy: 'nome',
   descending: false,
 })
 
-const columns: QTableProps['columns'] = [
-  {
-    name: 'descricao',
-    required: true,
-    label: 'Descrição',
-    field: 'descricao',
-    align: 'left',
-    sortable: true,
-  },
-  {
-    name: 'estado',
-    label: 'Estado',
-    field: (row: Item) => row.estado || 'Sem estado',
-    align: 'center',
-    sortable: true,
-  },
-  {
-    name: 'quantidade_total',
-    label: 'Total',
-    field: 'quantidade_total',
-    align: 'center',
-    sortable: true,
-  },
-  {
-    name: 'categoria',
-    label: 'Categoria',
-    field: (row: Item) => row.categoria || 'Não informada',
-    align: 'left',
-    sortable: true,
-  },
-  {
-    name: 'acoes',
-    label: 'Ações',
-    field: (row: Item) => row.id,
-    align: 'right',
-  },
-]
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value))
-}
-
-function normalizeText(value: string | number | null | undefined) {
+function normalizeText(value: string | number | boolean | null | undefined) {
   return String(value ?? '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -69,25 +29,64 @@ function normalizeText(value: string | number | null | undefined) {
     .trim()
 }
 
-const filteredItems = computed(() => {
+function getTipoLabel(tipo: Membro['tipo']) {
+  if (tipo === 'lideranca') return 'Lideranca'
+  if (tipo === 'visitante_autorizado') return 'Visitante autorizado'
+  return 'Membro'
+}
+
+const columns: QTableProps['columns'] = [
+  {
+    name: 'nome',
+    required: true,
+    label: 'Nome',
+    field: 'nome',
+    align: 'left',
+    sortable: true,
+  },
+  {
+    name: 'ativo',
+    label: 'Ativo',
+    field: (row: Membro) => (row.ativo ? 'Ativo' : 'Inativo'),
+    align: 'center',
+    sortable: true,
+  },
+  {
+    name: 'tipo',
+    label: 'Tipo',
+    field: (row: Membro) => getTipoLabel(row.tipo),
+    align: 'left',
+    sortable: true,
+  },
+  {
+    name: 'telefone',
+    label: 'Telefone',
+    field: (row: Membro) => (row.telefone ? formatPhoneInput(row.telefone) : 'Nao informado'),
+    align: 'left',
+    sortable: true,
+  },
+  {
+    name: 'acoes',
+    label: 'Acoes',
+    field: (row: Membro) => row.id,
+    align: 'right',
+  },
+]
+
+const filteredMembros = computed(() => {
   const term = normalizeText(searchTerm.value)
 
   if (!term) {
-    return items.value
+    return membros.value
   }
 
-  return items.value.filter((item) => {
+  return membros.value.filter((membro) => {
     const searchable = [
-      item.codigo,
-      item.descricao,
-      item.categoria,
-      item.estado,
-      item.localizacao,
-      item.quantidade_total,
-      item.quantidade_emprestada,
-      item.quantidade_disponivel,
-      item.data_cadastro,
-      formatDate(item.data_cadastro),
+      membro.nome,
+      getTipoLabel(membro.tipo),
+      membro.telefone,
+      formatPhoneInput(String(membro.telefone ?? '')),
+      membro.ativo ? 'ativo' : 'inativo',
     ]
 
     return searchable.some((value) => normalizeText(value).includes(term))
@@ -95,20 +94,21 @@ const filteredItems = computed(() => {
 })
 
 const noDataMessage = computed(() => {
-  if (items.value.length === 0) {
-    return 'Nenhum item cadastrado até agora.'
+  if (membros.value.length === 0) {
+    return 'Nenhum membro cadastrado ate agora.'
   }
 
-  return 'Nenhum item encontrado para a pesquisa informada.'
+  return 'Nenhum membro encontrado para a pesquisa informada.'
 })
 
-async function loadItems() {
+async function loadMembros() {
   loading.value = true
   errorMessage.value = ''
+
   try {
-    items.value = await listItens()
+    membros.value = await listMembros()
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : 'Não foi possível listar os itens.'
+    errorMessage.value = error instanceof Error ? error.message : 'Nao foi possivel listar os membros.'
   } finally {
     loading.value = false
   }
@@ -119,42 +119,43 @@ function goToDashboard() {
 }
 
 function goToCreate() {
-  void router.push({ name: 'items-create' })
+  void router.push({ name: 'members' })
 }
 
-function editItem(id: number) {
-  void router.push({ name: 'items-edit', params: { id } })
+function editMembro(id: number) {
+  void router.push({ name: 'members-edit', params: { id } })
 }
 
-function openImages(id: number) {
-  void router.push({ name: 'item-images', params: { id } })
-}
-
-function requestDelete(item: Item) {
-  pendingDeleteItem.value = item
+function requestDelete(membro: Membro) {
+  pendingDeleteMember.value = membro
   errorMessage.value = ''
 }
 
 function closeDeleteModal() {
-  pendingDeleteItem.value = null
+  pendingDeleteMember.value = null
 }
 
 async function confirmDelete() {
-  if (!pendingDeleteItem.value) {
+  if (!pendingDeleteMember.value || deleting.value) {
     return
   }
 
+  deleting.value = true
+  errorMessage.value = ''
+
   try {
-    await deleteItem(pendingDeleteItem.value.id)
+    await deleteMembro(pendingDeleteMember.value.id)
     closeDeleteModal()
-    await loadItems()
+    await loadMembros()
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : 'Não foi possível excluir o item.'
+    errorMessage.value = error instanceof Error ? error.message : 'Nao foi possivel excluir o membro.'
+  } finally {
+    deleting.value = false
   }
 }
 
 onMounted(() => {
-  void loadItems()
+  void loadMembros()
 })
 </script>
 
@@ -163,18 +164,18 @@ onMounted(() => {
     <section class="module-shell">
       <header class="module-header">
         <div class="module-header-copy">
-          <h1>Itens cadastrados</h1>
-          <p class="module-total">(Total: {{ items.length }})</p>
+          <h1 class="module-title">Membros cadastrados</h1>
+          <p class="module-total">(Total: {{ membros.length }})</p>
         </div>
 
-        <label class="search-box" aria-label="Pesquisar itens cadastrados">
+        <label class="search-box" aria-label="Pesquisar membros cadastrados">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M10.5 4a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13Zm0 2a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Zm8.9 11.5 1.4 1.4-2 2-1.4-1.4-2.8-2.8 2-2 2.8 2.8Z"/>
           </svg>
           <input
             v-model="searchTerm"
             type="text"
-            placeholder="Pesquisar por descrição, categoria, estado ou total..."
+            placeholder="Pesquisar por nome, tipo, telefone ou status..."
           />
         </label>
 
@@ -194,34 +195,36 @@ onMounted(() => {
           bordered
           dense
           hide-bottom
-          :rows="filteredItems"
+          :rows="filteredMembros"
           :columns="columns"
           :loading="loading"
           :grid="$q.screen.lt.md"
           row-key="id"
-          class="items-table"
+          class="members-table"
         >
-          <template #body-cell-descricao="props">
-            <q-td :props="props" class="description-cell">
-              {{ props.row.descricao }}
+          <template #body-cell-nome="props">
+            <q-td :props="props" class="name-cell">
+              {{ props.row.nome }}
             </q-td>
           </template>
 
-          <template #body-cell-estado="props">
+          <template #body-cell-ativo="props">
             <q-td :props="props">
-              <span class="status-chip">{{ props.row.estado || 'Sem estado' }}</span>
+              <span class="status-chip" :class="{ 'status-chip-off': !props.row.ativo }">
+                {{ props.row.ativo ? 'Ativo' : 'Inativo' }}
+              </span>
             </q-td>
           </template>
 
-          <template #body-cell-quantidade_total="props">
-            <q-td :props="props" class="total-cell">
-              {{ props.row.quantidade_total }}
+          <template #body-cell-tipo="props">
+            <q-td :props="props" class="type-cell">
+              {{ getTipoLabel(props.row.tipo) }}
             </q-td>
           </template>
 
-          <template #body-cell-categoria="props">
-            <q-td :props="props" class="category-cell">
-              {{ props.row.categoria || 'Não informada' }}
+          <template #body-cell-telefone="props">
+            <q-td :props="props" class="phone-cell">
+              {{ props.row.telefone ? formatPhoneInput(props.row.telefone) : 'Nao informado' }}
             </q-td>
           </template>
 
@@ -233,18 +236,9 @@ onMounted(() => {
                   round
                   dense
                   icon="edit"
-                  aria-label="Editar item"
-                  title="Editar item"
-                  @click="editItem(props.row.id)"
-                />
-                <q-btn
-                  flat
-                  round
-                  dense
-                  icon="image"
-                  aria-label="Imagens do item"
-                  title="Imagens do item"
-                  @click="openImages(props.row.id)"
+                  aria-label="Editar membro"
+                  title="Editar membro"
+                  @click="editMembro(props.row.id)"
                 />
                 <q-btn
                   flat
@@ -252,8 +246,8 @@ onMounted(() => {
                   dense
                   icon="delete"
                   color="negative"
-                  aria-label="Excluir item"
-                  title="Excluir item"
+                  aria-label="Excluir membro"
+                  title="Excluir membro"
                   @click="requestDelete(props.row)"
                 />
               </div>
@@ -264,10 +258,10 @@ onMounted(() => {
             <div class="mobile-grid-item">
               <article class="mobile-card">
                 <div class="mobile-copy">
-                  <h2>{{ props.row.descricao }}</h2>
-                  <p><strong>Estado:</strong> {{ props.row.estado || 'Sem estado' }}</p>
-                  <p><strong>Total:</strong> {{ props.row.quantidade_total }}</p>
-                  <p><strong>Categoria:</strong> {{ props.row.categoria || 'Não informada' }}</p>
+                  <h2>{{ props.row.nome }}</h2>
+                  <p><strong>Ativo:</strong> {{ props.row.ativo ? 'Ativo' : 'Inativo' }}</p>
+                  <p><strong>Tipo:</strong> {{ getTipoLabel(props.row.tipo) }}</p>
+                  <p><strong>Telefone:</strong> {{ props.row.telefone ? formatPhoneInput(props.row.telefone) : 'Nao informado' }}</p>
                 </div>
 
                 <div class="mobile-actions">
@@ -276,18 +270,9 @@ onMounted(() => {
                     round
                     dense
                     icon="edit"
-                    aria-label="Editar item"
-                    title="Editar item"
-                    @click="editItem(props.row.id)"
-                  />
-                  <q-btn
-                    flat
-                    round
-                    dense
-                    icon="image"
-                    aria-label="Imagens do item"
-                    title="Imagens do item"
-                    @click="openImages(props.row.id)"
+                    aria-label="Editar membro"
+                    title="Editar membro"
+                    @click="editMembro(props.row.id)"
                   />
                   <q-btn
                     flat
@@ -295,8 +280,8 @@ onMounted(() => {
                     dense
                     icon="delete"
                     color="negative"
-                    aria-label="Excluir item"
-                    title="Excluir item"
+                    aria-label="Excluir membro"
+                    title="Excluir membro"
                     @click="requestDelete(props.row)"
                   />
                 </div>
@@ -313,19 +298,32 @@ onMounted(() => {
       </section>
     </section>
 
-    <div v-if="pendingDeleteItem" class="modal-backdrop" @click.self="closeDeleteModal">
-      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="delete-item-title">
+    <div v-if="pendingDeleteMember" class="modal-backdrop" @click.self="closeDeleteModal">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="delete-member-title">
         <div class="modal-copy">
-          <h2 id="delete-item-title">Confirmar exclusão</h2>
-          <p>Deseja excluir o item <strong>{{ pendingDeleteItem.descricao }}</strong>?</p>
+          <h2 id="delete-member-title">Confirmar exclusao</h2>
+          <p>Deseja excluir o membro <strong>{{ pendingDeleteMember.nome }}</strong>?</p>
         </div>
         <div class="modal-actions">
-          <button type="button" class="icon-button icon-button-danger modal-icon" title="Confirmar exclusão" aria-label="Confirmar exclusão" @click="confirmDelete">
+          <button
+            type="button"
+            class="icon-button icon-button-danger modal-icon"
+            title="Confirmar exclusao"
+            aria-label="Confirmar exclusao"
+            :disabled="deleting"
+            @click="confirmDelete"
+          >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M9.55 18.2 4.8 13.45l1.4-1.4 3.35 3.35 8.25-8.25 1.4 1.4-9.65 9.65Z"/>
             </svg>
           </button>
-          <button type="button" class="icon-button modal-icon" title="Cancelar exclusão" aria-label="Cancelar exclusão" @click="closeDeleteModal">
+          <button
+            type="button"
+            class="icon-button modal-icon"
+            title="Cancelar exclusao"
+            aria-label="Cancelar exclusao"
+            @click="closeDeleteModal"
+          >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m12 10.6 4.95-4.95 1.4 1.4L13.4 12l4.95 4.95-1.4 1.4L12 13.4l-4.95 4.95-1.4-1.4L10.6 12 5.65 7.05l1.4-1.4L12 10.6Z"/>
             </svg>
@@ -384,7 +382,7 @@ onMounted(() => {
   color: #172033;
 }
 
-.module-header h1 {
+.module-title {
   font-size: clamp(1.35rem, 1rem + 0.9vw, 1.85rem);
   font-weight: 800;
   line-height: 1.2;
@@ -463,21 +461,21 @@ onMounted(() => {
   border: 1px solid #fecaca;
 }
 
-.items-table {
+.members-table {
   border-radius: 20px;
   overflow: hidden;
 }
 
-.items-table :deep(.q-table__top),
-.items-table :deep(.q-table__bottom) {
+.members-table :deep(.q-table__top),
+.members-table :deep(.q-table__bottom) {
   display: none;
 }
 
-.items-table :deep(.q-table thead tr) {
+.members-table :deep(.q-table thead tr) {
   background: #f5fbfb;
 }
 
-.items-table :deep(.q-table th) {
+.members-table :deep(.q-table th) {
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -485,26 +483,22 @@ onMounted(() => {
   color: #0f766e;
 }
 
-.items-table :deep(.q-table th),
-.items-table :deep(.q-table td) {
+.members-table :deep(.q-table th),
+.members-table :deep(.q-table td) {
   padding: 14px 16px;
 }
 
-.items-table :deep(.q-table tbody tr:nth-child(even)) {
+.members-table :deep(.q-table tbody tr:nth-child(even)) {
   background: #fcfefe;
 }
 
-.description-cell,
-.category-cell {
+.name-cell,
+.type-cell,
+.phone-cell {
   max-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.total-cell {
-  font-weight: 800;
-  color: #172033;
 }
 
 .status-chip {
@@ -518,6 +512,11 @@ onMounted(() => {
   color: #0f766e;
   font-size: 0.84rem;
   font-weight: 800;
+}
+
+.status-chip-off {
+  background: rgba(148, 163, 184, 0.15);
+  color: #475569;
 }
 
 .row-actions,

@@ -1,6 +1,6 @@
 # Checkpoint de Retorno Frontend Utensilios
 
-Atualizado em: 2026-04-01
+Atualizado em: 2026-04-03
 Status da parada: segura para retomada
 
 ## Onde paramos
@@ -40,6 +40,196 @@ Status da parada: segura para retomada
   - [.htaccess](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\hostinger\.htaccess)
 
 ## Trabalho concluido nesta rodada
+
+- `LOGIN-003`:
+  - a tela de login foi refatorada para um fluxo em duas etapas, orientado pelas referencias visuais compartilhadas
+  - o icone textual do topo foi substituido pelo logo local da IBG em:
+    - [ibg-logo-login.png](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\assets\ibg-logo-login.png)
+  - em [LoginView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\LoginView.vue):
+    - o topo passou a exibir `IBG UTENSILIOS` com acentuacao visual correta na interface
+    - `Acesso seguro` passou para `Inicie sessao`
+    - os labels externos de `E-mail` e `Senha` foram retirados
+    - o campo de e-mail passou a exibir o rotulo pequeno dentro do proprio bloco
+    - o campo de palavra-passe passa a ficar oculto ate a confirmacao do e-mail
+    - o botao principal passa a iniciar como `Continuar`
+    - apos validacao e confirmacao do e-mail, o botao passa para `Iniciar sessao`
+    - o layout foi aproximado das referencias visuais, com card escuro e responsividade mantida para mobile
+  - a API ganhou verificacao previa de e-mail em:
+    - [auth.dto.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.api\src\modules\auth\auth.dto.ts)
+    - [auth.controller.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.api\src\modules\auth\auth.controller.ts)
+    - [auth.router.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.api\src\modules\auth\auth.router.ts)
+    - [auth.service.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.api\src\modules\auth\auth.service.ts)
+  - o frontend passou a consumir a verificacao previa de e-mail em:
+    - [auth.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\stores\auth.ts)
+  - o teste unitario da tela de login foi atualizado em:
+    - [LoginView.spec.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\__tests__\LoginView.spec.ts)
+
+- `LOGIN-004`:
+  - o fluxo inicial de `Continuar` no login foi endurecido para nao depender da acao `checkEmail` do store durante a verificacao preliminar do e-mail
+  - em [LoginView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\LoginView.vue):
+    - a verificacao do e-mail passou a chamar diretamente `/auth/check-email`
+    - o logo do topo foi ampliado para ganhar mais destaque visual
+    - os textos de carregamento, erro e autenticacao foram revisados para portugues mais claro
+  - em [auth.service.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.api\src\modules\auth\auth.service.ts) e [auth.controller.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.api\src\modules\auth\auth.controller.ts):
+    - as mensagens de validacao e autenticacao passaram a descrever com mais precisao quando o e-mail nao existe, quando a conta esta inativa e quando a palavra-passe esta incorreta
+
+- `LOGIN-005`:
+  - o formulario de login recebeu blindagem visual para manter o campo com fundo escuro mesmo quando o navegador tenta aplicar autofill claro
+  - em [LoginView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\LoginView.vue):
+    - o fundo do campo passou a acompanhar o card do login
+    - o texto, cursor e autofill passaram a manter contraste claro sobre o fundo escuro
+    - a mensagem de erro passa a desaparecer assim que o utilizador volta a editar o e-mail
+  - em [vite.config.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\vite.config.ts):
+    - a integracao de `vite-plugin-vue-devtools` foi retirada do frontend para reduzir ruido no console durante o desenvolvimento local
+
+- `PAINEL-001`:
+  - o cabecalho do painel foi simplificado para `IBG - UTENSILIOS`
+  - em [DashboardView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\DashboardView.vue):
+    - `PROJETO IBG - UTENSILIOS` passou para `IBG - UTENSILIOS`
+    - `USUARIO LOGADO` passou para `Usuario:`
+    - o painel passou a mostrar apenas o primeiro nome do utilizador autenticado
+    - o botao textual de sair foi substituido por um icone de logoff dentro do proprio card do utilizador
+  - em [auth-session.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\utils\auth-session.ts):
+    - a tipagem da sessao foi atualizada para incluir `nome`, acompanhando o retorno real da autenticacao
+
+- `ITENS-UX-002`:
+  - a tela de cadastro de `Itens` foi compactada para uso mais confortavel em celular
+  - em [ItensView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\ItensView.vue):
+    - retirados os textos `Novo registro` e `Novo item`
+    - retirado o total cadastrado do cabecalho
+    - `Quantidade total disponivel` passou a ser `Quantidade`
+    - `Categoria` passou a ficar abaixo de `Estado`
+    - `Descricao` deixou de ocupar largura dupla e passou a usar altura maior com `textarea`
+    - o botao principal passou a exibir `Salvar`
+    - o botao de listagem passou a exibir `Listar`
+    - os cards principais foram reduzidos em largura e padding para uma composicao mais enxuta e responsiva
+  - validacao desta rodada:
+    - `npm run build` em `ibg.utensilios.web`
+
+- `OPERACIONAL-003`:
+  - as frentes de `Emprestimos` e `Historico` foram alinhadas ao padrao de `Itens` e `Membros`
+  - `Emprestimos` deixou de concentrar cadastro e listagem numa unica tela
+  - a tela de cadastro permaneceu em:
+    - [EmprestimosView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\EmprestimosView.vue)
+  - a listagem passou a existir em tela propria:
+    - [EmprestimosListView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\EmprestimosListView.vue)
+  - novas rotas de emprestimos foram abertas em:
+    - [index.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\router\index.ts)
+    - `loans-list`
+    - `loans-edit`
+  - a tela de emprestimos recebeu:
+    - cabecalho com total cadastrado
+    - retirada do card separado de ativos
+    - botao `Listar emprestimos`
+    - cancelamento de edicao
+    - exclusao com modal
+    - devolucao com confirmacao visual na listagem
+    - pesquisa textual na listagem
+    - validacao de quantidade
+    - campo `Devolver em`
+    - limite operacional de observacoes no frontend e backend
+  - `Historico` deixou de concentrar cadastro e listagem numa unica tela
+  - a tela de cadastro permaneceu em:
+    - [HistoricoView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\HistoricoView.vue)
+  - a listagem passou a existir em tela propria:
+    - [HistoricoListView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\HistoricoListView.vue)
+  - novas rotas de historico foram abertas em:
+    - [index.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\router\index.ts)
+    - `history-list`
+    - `history-edit`
+  - a tela de historico recebeu:
+    - cabecalho com total cadastrado
+    - formulario focado no cadastro e edicao
+    - botao `Listar historico`
+    - exclusao com modal
+    - pesquisa textual na listagem
+    - limite operacional de descricao
+    - limite de usuario responsavel aderente ao banco
+  - a camada de servicos da web passou a expor leitura individual de emprestimos e historico em:
+    - [modules.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\services\modules.ts)
+  - a API foi endurecida em:
+    - [emprestimo.dto.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.api\src\modules\emprestimos\emprestimo.dto.ts)
+    - [emprestimo.controller.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.api\src\modules\emprestimos\emprestimo.controller.ts)
+    - [historico.dto.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.api\src\modules\historico\historico.dto.ts)
+    - [historico.controller.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.api\src\modules\historico\historico.controller.ts)
+  - o backend passou a:
+    - devolver mensagens de validacao mais objetivas
+    - limitar observacoes de emprestimos
+    - limitar descricao de historico
+    - manter `usuario_responsavel` dentro do tamanho do banco
+
+- `MEMBROS-002`:
+  - a frente de `Membros` foi alinhada ao padrao de `Itens`
+  - o card inicial de `Membros` passou a usar cabecalho com total cadastrado, retirando o card separado de `Ativos`
+  - `Membros` deixou de concentrar cadastro e listagem numa unica tela
+  - a tela de cadastro permaneceu em:
+    - [MembrosView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\MembrosView.vue)
+  - a listagem passou a existir em tela propria:
+    - [MembrosListView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\MembrosListView.vue)
+  - novas rotas de membros foram abertas em:
+    - [index.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\router\index.ts)
+    - `members-list`
+    - `members-edit`
+  - a listagem de membros recebeu:
+    - pesquisa textual
+    - botoes por icone para editar e excluir
+    - confirmacao visual por modal
+    - total no cabecalho no mesmo modelo de `Itens`
+  - a tela de cadastro de membros recebeu:
+    - botao `Listar membros`
+    - botao de cancelar edicao
+    - exclusao com modal em vez de `window.confirm`
+    - feedback visual formatado para sucesso e erro
+  - validacoes e formatacoes adicionadas no frontend:
+    - limite de `nome` em 150 caracteres
+    - mascara e validacao de telefone com DDD
+    - mascara de CPF com persistencia em 11 digitos
+    - normalizacao e validacao de e-mail
+  - utilitarios de campos de membros centralizados em:
+    - [membro-fields.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\utils\membro-fields.ts)
+  - a camada de servicos da web passou a expor leitura individual de membro em:
+    - [modules.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\services\modules.ts)
+  - a API de membros foi endurecida em:
+    - [membro.dto.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.api\src\modules\membros\membro.dto.ts)
+    - [membro.controller.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.api\src\modules\membros\membro.controller.ts)
+    - [membro.service.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.api\src\modules\membros\membro.service.ts)
+  - o backend passou a:
+    - validar melhor telefone, CPF e e-mail
+    - normalizar CPF para 11 digitos
+    - devolver mensagens mais claras para duplicidade de CPF e e-mail
+
+- `CONFIG-005`:
+  - perfis relidos e reassumidos em conjunto para esta instancia
+  - leitura refeita na ordem pedida no prompt atual:
+    - `cecom_v2/docs/aprendizado_frontend`
+    - `Utensilios/docs/backlog_frontend`
+    - `Utensilios/docs/hostinger`
+    - `Utensilios/docs/deploy`
+    - `Utensilios/docs/historico`
+    - `Utensilios/docs/Espeficicacao_Projeto.txt`
+    - `Utensilios/docs/backlog_frontend/checkpoint_retorno.md`
+  - correlacao complementar mantida com `cecom_v2/docs/deploy` e `cecom_v2/docs/hostinger`
+  - `cecom_v2/docs/aprendizado_frontend` segue vazio nesta maquina
+  - confirmacao externa refeita com documentacao oficial atual da Hostinger e do Vite
+  - [configuracoes.txt](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\configuracoes.txt) atualizado para registrar:
+    - identidade operacional desta instancia
+    - escopo autorizado de atuacao
+    - ordem real da leitura e correlacao
+    - baseline segura de Hostinger revalidada em 2026-04-02
+    - lacunas ainda abertas antes do primeiro deploy
+    - proximos passos de `DEPLOY-001`
+  - validacao objetiva executada nesta rodada:
+    - `powershell -ExecutionPolicy Bypass -File docs\hostinger\build_hostinger_artifacts.ps1`
+  - resultado validado nesta rodada:
+    - API compilou com sucesso
+    - web compilou com sucesso
+    - ZIP do frontend gerado novamente com sucesso
+    - ZIP da API gerado novamente com sucesso
+  - hashes atuais registrados em `docs\configuracoes.txt`:
+    - `ibg.utensilios.web-public_html.zip`
+      - `48F057C3FA48A83A2068E3CD6930F2DD8485D84A5E029A1B2657AEDDF4D97379`
+    - `ibg.utensilios.api-hostinger.zip`
+      - `084F6FFC60C73F11436982460F7B0ACEC60A5B311B08474160E9DD4BE66C4DCF`
 
 - `CONFIG-004`:
   - perfis relidos e reassumidos em conjunto para esta instancia
@@ -179,8 +369,14 @@ Status da parada: segura para retomada
   - `npm run build` em `ibg.utensilios.api`
   - `npm run db:migrate` em `ibg.utensilios.api`
   - `npm run db:seed` em `ibg.utensilios.api`
+- nesta rodada de refatoracao de `Emprestimos` e `Historico` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+  - `npm run build` em `ibg.utensilios.api`
+- nesta rodada de refatoracao de `Membros` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+  - `npm run build` em `ibg.utensilios.api`
 - nesta rodada atual foi feita validacao documental e de configuracao, sem nova alteracao de codigo
-- nesta rodada tambem foi executado novamente com sucesso:
+- nesta rodada atual de 2026-04-02 foi executado novamente com sucesso:
   - `powershell -ExecutionPolicy Bypass -File docs\hostinger\build_hostinger_artifacts.ps1`
 - nesta rodada de interface foi executado com sucesso:
   - `npm run build` em `ibg.utensilios.web`
@@ -189,6 +385,42 @@ Status da parada: segura para retomada
   - `npm run build` em `ibg.utensilios.web`
 - nesta rodada de refinamento da listagem de itens foi executado com sucesso:
   - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de simplificacao da grade de `Itens` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de alinhamento e responsividade da lista de `Itens` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de integracao do `Quasar` e migracao da lista de `Itens` para `QTable` foi executado com sucesso:
+  - `npm install quasar @quasar/extras @quasar/vite-plugin --save`
+  - `npm install sass-embedded --save-dev`
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de compactacao do card principal de `Membros` no padrao de `Itens` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de endurecimento das validacoes de `Membros` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+  - `npm run build` em `ibg.utensilios.api`
+- nesta rodada de migracao da lista de `Membros` para o padrao `QTable` de `Itens` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de reestruturacao de `Emprestimos` para cabecalho + itens foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.api`
+  - `npm run build` em `ibg.utensilios.web`
+  - `npm run db:migrate` em `ibg.utensilios.api`
+- nesta rodada de refinamento da tela de `Empréstimos` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+  - `npm run build` em `ibg.utensilios.api`
+- nesta rodada de refatoracao do fluxo de `Login` em duas etapas foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+  - `npm run build` em `ibg.utensilios.api`
+  - `npm run test:unit -- LoginView` em `ibg.utensilios.web`
+- nesta rodada de correcao do fluxo `Continuar` no login foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+  - `npm run build` em `ibg.utensilios.api`
+  - `npm run test:unit -- LoginView` em `ibg.utensilios.web`
+- nesta rodada de refinamento visual e de console do `Login` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+  - `npm run test:unit -- LoginView` em `ibg.utensilios.web`
+- nesta rodada de ajuste do `Painel` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+  - `npm run test:unit -- LoginView` em `ibg.utensilios.web`
 - nesta rodada de pesquisa e modal na lista de itens foi executado com sucesso:
   - `npm run build` em `ibg.utensilios.web`
 - nenhuma mudanca funcional adicional foi aplicada nesta rodada; o ganho desta etapa foi endurecer a baseline documental para deploy
@@ -201,14 +433,15 @@ Status da parada: segura para retomada
   - validar manualmente o fluxo ponta a ponta dos quatro modulos em `localhost`
   - endurecer regras, UX e consistencia dos CRUDs ja criados
 - frente tecnica paralela:
-  - abrir `DEPLOY-001` para transformar a baseline documental em configuracao real de producao
+  - abrir `DEPLOY-001` para transformar a baseline documental revalidada em 2026-04-02 na configuracao real de producao
 - ordem recomendada:
   - 1. validar `Itens`, `Membros`, `Emprestimos` e `Historico` com fluxo real
   - 2. revisar mensagens de erro, protecao de sessao e tratamento de `401`
   - 3. criar `ibg.utensilios.web/.env.production`
   - 4. definir dominio da web e subdominio da API
-  - 5. criar checklist e historico de deploy do Utensilios
-  - 6. so depois congelar a estrategia do primeiro deploy
+  - 5. decidir e ensaiar a estrategia de migrations no banco de producao
+  - 6. executar a primeira publicacao controlada
+  - 7. so depois congelar a estrategia vencedora do primeiro deploy
 
 ## Como retomar com seguranca
 
@@ -217,6 +450,8 @@ Status da parada: segura para retomada
   - [configuracoes.txt](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\configuracoes.txt)
   - [checkpoint_retorno.md](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\backlog_frontend\checkpoint_retorno.md)
 - depois abrir:
+  - [README.md](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\deploy\README.md)
+  - [CHECKLIST.md](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\deploy\CHECKLIST.md)
   - [LoginView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\LoginView.vue)
   - [DashboardView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\DashboardView.vue)
   - [auth.service.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.api\src\modules\auth\auth.service.ts)

@@ -26,8 +26,10 @@ describe('LoginView', () => {
       },
     })
 
-    expect(wrapper.text()).toContain('Entre com seu e-mail e senha')
+    expect(wrapper.text()).toContain('IBG UTENSÍLIOS')
+    expect(wrapper.text()).toContain('Inicie sessão')
     expect(wrapper.find('input[type="email"]').exists()).toBe(true)
-    expect(wrapper.find('input[type="password"]').exists()).toBe(true)
+    expect(wrapper.find('input[type="password"]').exists()).toBe(false)
+    expect(wrapper.find('button[type="submit"]').text()).toContain('Continuar')
   })
 })

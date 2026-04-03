@@ -232,29 +232,40 @@ onMounted(() => {
       <header class="module-header">
         <div class="module-header-copy">
           <h1>Itens</h1>
-          <p v-if="totalItens !== null" class="module-total">Total cadastrado: {{ totalItens }}</p>
         </div>
 
         <button type="button" class="module-exit" @click="goToDashboard">Sair</button>
       </header>
 
       <section class="panel-card">
-        <div class="panel-heading">
+        <div v-if="editingId" class="panel-heading">
           <div>
-            <p class="panel-kicker">{{ editingId ? 'Edicao' : 'Novo registro' }}</p>
-            <h2>{{ editingId ? 'Editar item' : 'Novo item' }}</h2>
+            <h2>Editar item</h2>
           </div>
         </div>
 
         <p v-if="loading" class="status-copy">Preparando formulario...</p>
 
         <form v-else class="form-grid" @submit.prevent="handleSubmit">
-          <label class="field field-span-2">
-            <span>Descricao</span>
-            <input v-model="form.descricao" />
+          <label class="field">
+            <span>Descrição</span>
+            <textarea v-model="form.descricao" rows="2" />
             <small class="field-help">{{ form.descricao.length }}/{{ DESCRIPTION_MAX_LENGTH }}</small>
             <small v-if="isDescriptionTooLong" class="field-error">
               A descricao ultrapassou o limite de {{ DESCRIPTION_MAX_LENGTH }} caracteres do banco.
+            </small>
+          </label>
+
+          <label class="field">
+            <span>Quantidade</span>
+            <input
+              :value="form.quantidade_total_input"
+              inputmode="numeric"
+              autocomplete="off"
+              @input="handleQuantidadeTotalInput"
+            />
+            <small v-if="shouldShowQuantidadeError" class="field-error">
+              {{ quantidadeTotalParseResult.message }}
             </small>
           </label>
 
@@ -278,31 +289,20 @@ onMounted(() => {
             </select>
           </label>
 
-          <label class="field">
-            <span>Quantidade total disponível</span>
-            <input
-              :value="form.quantidade_total_input"
-              inputmode="numeric"
-              autocomplete="off"
-              @input="handleQuantidadeTotalInput"
-            />
-            <small v-if="shouldShowQuantidadeError" class="field-error">
-              {{ quantidadeTotalParseResult.message }}
-            </small>
-          </label>
-
           <div class="feedback-group">
             <p v-if="feedback" class="feedback success">{{ feedback }}</p>
             <p v-if="errorMessage" class="feedback error">{{ errorMessage }}</p>
           </div>
 
-          <button type="submit" class="primary-button" :disabled="submitting || !isFormValid">
-            {{ submitLabel }}
-          </button>
+          <div class="button-row">
+            <button type="submit" class="primary-button action-button" :disabled="submitting || !isFormValid">
+              {{ submitting ? 'Salvando...' : 'Salvar' }}
+            </button>
 
-          <button type="button" class="ghost-button secondary-action" @click="goToList">
-            Listar itens
-          </button>
+            <button type="button" class="ghost-button action-button" @click="goToList">
+              Listar
+            </button>
+          </div>
 
           <button
             v-if="editingId"
@@ -322,13 +322,13 @@ onMounted(() => {
 <style scoped>
 .module-page { min-height: 100vh; background:
   radial-gradient(circle at top left, rgba(0, 138, 124, 0.12), transparent 34%),
-  linear-gradient(180deg, #f3f7f7 0%, #edf3f4 100%); padding: clamp(16px, 3vw, 28px); box-sizing: border-box; }
-.module-shell { width: min(100%, 900px); margin: 0 auto; display: grid; gap: 18px; }
-.module-header, .panel-card { background: rgba(255, 255, 255, 0.94); border: 1px solid rgba(219, 228, 232, 0.95); border-radius: 24px; box-shadow: 0 14px 30px rgba(15, 35, 33, 0.07); }
-.module-header { padding: clamp(18px, 2.8vw, 28px); display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
+  linear-gradient(180deg, #f3f7f7 0%, #edf3f4 100%); padding: clamp(12px, 2.4vw, 18px); box-sizing: border-box; }
+.module-shell { width: min(100%, 480px); margin: 0 auto; display: grid; gap: 12px; }
+.module-header, .panel-card { background: rgba(255, 255, 255, 0.94); border: 1px solid rgba(219, 228, 232, 0.95); border-radius: 20px; box-shadow: 0 10px 22px rgba(15, 35, 33, 0.07); }
+.module-header { padding: clamp(14px, 2.4vw, 18px); display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
 .module-header-copy { display: grid; gap: 8px; }
 .module-header h1, .panel-heading h2 { margin: 0; color: #172033; }
-.module-header h1 { font-size: clamp(1.8rem, 3vw, 2.4rem); }
+.module-header h1 { font-size: clamp(1.45rem, 2.8vw, 1.8rem); }
 .module-total, .status-copy { margin: 0; color: #536579; line-height: 1.6; }
 .module-total { font-weight: 800; }
 .module-exit, .primary-button, .ghost-button, .danger-button { min-height: 44px; border-radius: 999px; padding: 0 16px; font-weight: 700; font: inherit; }
@@ -336,19 +336,22 @@ onMounted(() => {
 .primary-button { border: 0; background: linear-gradient(135deg, #008a7c 0%, #0f766e 100%); color: #fff; }
 .primary-button:disabled { opacity: 0.65; cursor: not-allowed; }
 .danger-button { border: 1px solid #fecaca; background: #fff1f2; color: #b91c1c; }
-.panel-card { padding: 20px; display: grid; gap: 18px; }
-.panel-heading { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+.panel-card { padding: 14px; display: grid; gap: 14px; }
+.panel-heading { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
 .panel-kicker { margin: 0; text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.74rem; font-weight: 800; color: #0f766e; }
-.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.form-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
 .field { display: grid; gap: 8px; }
 .field span { color: #314255; font-weight: 700; }
-.field input, .field select { min-height: 46px; border-radius: 14px; border: 1px solid #d6e0e4; background: #f7fbfb; padding: 0 14px; font: inherit; }
-.field-span-2, .feedback-group, .primary-button, .secondary-action { grid-column: 1 / -1; }
+.field input, .field select, .field textarea { min-height: 46px; border-radius: 14px; border: 1px solid #d6e0e4; background: #f7fbfb; padding: 0 14px; font: inherit; }
+.field textarea { min-height: 92px; padding-top: 12px; resize: vertical; }
+.feedback-group, .secondary-action, .button-row { grid-column: 1 / -1; }
+.button-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.action-button { width: 100%; }
 .field-help { color: #64748b; }
 .field-error { color: #b91c1c; font-weight: 700; }
 .feedback-group { display: grid; gap: 10px; }
 .feedback { margin: 0; padding: 12px 14px; border-radius: 14px; font-weight: 700; }
 .feedback.success { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
 .feedback.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
-@media (max-width: 720px) { .module-header { flex-direction: column; } .module-exit, .primary-button, .ghost-button, .danger-button { width: 100%; } .form-grid { grid-template-columns: 1fr; } }
+@media (max-width: 720px) { .module-header { flex-direction: column; } .module-exit, .danger-button { width: 100%; } .button-row { grid-template-columns: 1fr; } }
 </style>

@@ -4,6 +4,7 @@ export type AuthSession = {
   token: string
   usuario: {
     id: number
+    nome: string
     email: string
     role: string
   }

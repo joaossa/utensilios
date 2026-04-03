@@ -3,61 +3,27 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar, type QTableProps } from 'quasar'
 
-import { deleteItem, listItens, type Item } from '@/services/modules'
+import { deleteEmprestimo, listEmprestimos, returnEmprestimo, type Emprestimo } from '@/services/modules'
 
 const router = useRouter()
 const $q = useQuasar()
 
-const items = ref<Item[]>([])
+const emprestimos = ref<Emprestimo[]>([])
 const loading = ref(false)
 const errorMessage = ref('')
 const searchTerm = ref('')
-const pendingDeleteItem = ref<Item | null>(null)
+const pendingDeleteLoan = ref<Emprestimo | null>(null)
+const pendingReturnLoan = ref<Emprestimo | null>(null)
+const deleting = ref(false)
+const returning = ref(false)
 const pagination = ref({
   rowsPerPage: 0,
-  sortBy: 'descricao',
-  descending: false,
+  sortBy: 'data_retirada',
+  descending: true,
 })
 
-const columns: QTableProps['columns'] = [
-  {
-    name: 'descricao',
-    required: true,
-    label: 'Descrição',
-    field: 'descricao',
-    align: 'left',
-    sortable: true,
-  },
-  {
-    name: 'estado',
-    label: 'Estado',
-    field: (row: Item) => row.estado || 'Sem estado',
-    align: 'center',
-    sortable: true,
-  },
-  {
-    name: 'quantidade_total',
-    label: 'Total',
-    field: 'quantidade_total',
-    align: 'center',
-    sortable: true,
-  },
-  {
-    name: 'categoria',
-    label: 'Categoria',
-    field: (row: Item) => row.categoria || 'Não informada',
-    align: 'left',
-    sortable: true,
-  },
-  {
-    name: 'acoes',
-    label: 'Ações',
-    field: (row: Item) => row.id,
-    align: 'right',
-  },
-]
-
-function formatDate(value: string) {
+function formatDateTime(value: string | null) {
+  if (!value) return 'Nao informado'
   return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value))
 }
 
@@ -69,25 +35,79 @@ function normalizeText(value: string | number | null | undefined) {
     .trim()
 }
 
-const filteredItems = computed(() => {
+function getStatusLabel(status: Emprestimo['status']) {
+  if (status === 'devolvido') return 'Devolvido'
+  if (status === 'atrasado') return 'Atrasado'
+  return 'Ativo'
+}
+
+const columns: QTableProps['columns'] = [
+  {
+    name: 'membro_nome',
+    required: true,
+    label: 'Membro',
+    field: (row: Emprestimo) => row.membro_nome || 'Nao informado',
+    align: 'left',
+    sortable: true,
+  },
+  {
+    name: 'itens_resumo',
+    label: 'Itens',
+    field: (row: Emprestimo) => row.itens_resumo || 'Nao informado',
+    align: 'left',
+    sortable: true,
+  },
+  {
+    name: 'quantidade_total',
+    label: 'Qtd.',
+    field: 'quantidade_total',
+    align: 'center',
+    sortable: true,
+  },
+  {
+    name: 'status',
+    label: 'Status',
+    field: (row: Emprestimo) => getStatusLabel(row.status),
+    align: 'center',
+    sortable: true,
+  },
+  {
+    name: 'data_prevista_devolucao',
+    label: 'Devolver em',
+    field: (row: Emprestimo) => formatDateTime(row.data_prevista_devolucao),
+    align: 'left',
+    sortable: true,
+  },
+  {
+    name: 'acoes',
+    label: 'Acoes',
+    field: (row: Emprestimo) => row.id,
+    align: 'right',
+  },
+]
+
+const filteredEmprestimos = computed(() => {
   const term = normalizeText(searchTerm.value)
 
   if (!term) {
-    return items.value
+    return emprestimos.value
   }
 
-  return items.value.filter((item) => {
+  return emprestimos.value.filter((emprestimo) => {
     const searchable = [
-      item.codigo,
-      item.descricao,
-      item.categoria,
-      item.estado,
-      item.localizacao,
-      item.quantidade_total,
-      item.quantidade_emprestada,
-      item.quantidade_disponivel,
-      item.data_cadastro,
-      formatDate(item.data_cadastro),
+      emprestimo.id,
+      emprestimo.membro_nome,
+      emprestimo.itens_resumo,
+      emprestimo.quantidade_total,
+      emprestimo.total_itens,
+      getStatusLabel(emprestimo.status),
+      emprestimo.observacoes,
+      emprestimo.data_retirada,
+      formatDateTime(emprestimo.data_retirada),
+      emprestimo.data_prevista_devolucao,
+      formatDateTime(emprestimo.data_prevista_devolucao),
+      emprestimo.data_devolucao,
+      formatDateTime(emprestimo.data_devolucao),
     ]
 
     return searchable.some((value) => normalizeText(value).includes(term))
@@ -95,20 +115,22 @@ const filteredItems = computed(() => {
 })
 
 const noDataMessage = computed(() => {
-  if (items.value.length === 0) {
-    return 'Nenhum item cadastrado até agora.'
+  if (emprestimos.value.length === 0) {
+    return 'Nenhum emprestimo cadastrado ate agora.'
   }
 
-  return 'Nenhum item encontrado para a pesquisa informada.'
+  return 'Nenhum emprestimo encontrado para a pesquisa informada.'
 })
 
-async function loadItems() {
+async function loadEmprestimos() {
   loading.value = true
   errorMessage.value = ''
+
   try {
-    items.value = await listItens()
+    emprestimos.value = await listEmprestimos()
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : 'Não foi possível listar os itens.'
+    errorMessage.value =
+      error instanceof Error ? error.message : 'Nao foi possivel listar os emprestimos.'
   } finally {
     loading.value = false
   }
@@ -119,42 +141,73 @@ function goToDashboard() {
 }
 
 function goToCreate() {
-  void router.push({ name: 'items-create' })
+  void router.push({ name: 'loans' })
 }
 
-function editItem(id: number) {
-  void router.push({ name: 'items-edit', params: { id } })
+function editEmprestimo(id: number) {
+  void router.push({ name: 'loans-edit', params: { id } })
 }
 
-function openImages(id: number) {
-  void router.push({ name: 'item-images', params: { id } })
-}
-
-function requestDelete(item: Item) {
-  pendingDeleteItem.value = item
+function requestDelete(emprestimo: Emprestimo) {
+  pendingDeleteLoan.value = emprestimo
   errorMessage.value = ''
 }
 
 function closeDeleteModal() {
-  pendingDeleteItem.value = null
+  pendingDeleteLoan.value = null
 }
 
 async function confirmDelete() {
-  if (!pendingDeleteItem.value) {
+  if (!pendingDeleteLoan.value || deleting.value) {
     return
   }
 
+  deleting.value = true
+  errorMessage.value = ''
+
   try {
-    await deleteItem(pendingDeleteItem.value.id)
+    await deleteEmprestimo(pendingDeleteLoan.value.id)
     closeDeleteModal()
-    await loadItems()
+    await loadEmprestimos()
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : 'Não foi possível excluir o item.'
+    errorMessage.value =
+      error instanceof Error ? error.message : 'Nao foi possivel excluir o emprestimo.'
+  } finally {
+    deleting.value = false
+  }
+}
+
+function requestReturn(emprestimo: Emprestimo) {
+  pendingReturnLoan.value = emprestimo
+  errorMessage.value = ''
+}
+
+function closeReturnModal() {
+  pendingReturnLoan.value = null
+}
+
+async function confirmReturn() {
+  if (!pendingReturnLoan.value || returning.value) {
+    return
+  }
+
+  returning.value = true
+  errorMessage.value = ''
+
+  try {
+    await returnEmprestimo(pendingReturnLoan.value.id)
+    closeReturnModal()
+    await loadEmprestimos()
+  } catch (error) {
+    errorMessage.value =
+      error instanceof Error ? error.message : 'Nao foi possivel registrar a devolucao.'
+  } finally {
+    returning.value = false
   }
 }
 
 onMounted(() => {
-  void loadItems()
+  void loadEmprestimos()
 })
 </script>
 
@@ -163,18 +216,18 @@ onMounted(() => {
     <section class="module-shell">
       <header class="module-header">
         <div class="module-header-copy">
-          <h1>Itens cadastrados</h1>
-          <p class="module-total">(Total: {{ items.length }})</p>
+          <h1>Emprestimos cadastrados</h1>
+          <p class="module-total">(Total: {{ emprestimos.length }})</p>
         </div>
 
-        <label class="search-box" aria-label="Pesquisar itens cadastrados">
+        <label class="search-box" aria-label="Pesquisar emprestimos cadastrados">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M10.5 4a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13Zm0 2a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Zm8.9 11.5 1.4 1.4-2 2-1.4-1.4-2.8-2.8 2-2 2.8 2.8Z"/>
           </svg>
           <input
             v-model="searchTerm"
             type="text"
-            placeholder="Pesquisar por descrição, categoria, estado ou total..."
+            placeholder="Pesquisar por membro, item, status ou data..."
           />
         </label>
 
@@ -194,22 +247,22 @@ onMounted(() => {
           bordered
           dense
           hide-bottom
-          :rows="filteredItems"
+          :rows="filteredEmprestimos"
           :columns="columns"
           :loading="loading"
           :grid="$q.screen.lt.md"
           row-key="id"
-          class="items-table"
+          class="loans-table"
         >
-          <template #body-cell-descricao="props">
-            <q-td :props="props" class="description-cell">
-              {{ props.row.descricao }}
+          <template #body-cell-membro_nome="props">
+            <q-td :props="props" class="member-cell">
+              {{ props.row.membro_nome || 'Nao informado' }}
             </q-td>
           </template>
 
-          <template #body-cell-estado="props">
-            <q-td :props="props">
-              <span class="status-chip">{{ props.row.estado || 'Sem estado' }}</span>
+          <template #body-cell-itens_resumo="props">
+            <q-td :props="props" class="items-cell">
+              {{ props.row.itens_resumo || 'Nao informado' }}
             </q-td>
           </template>
 
@@ -219,9 +272,17 @@ onMounted(() => {
             </q-td>
           </template>
 
-          <template #body-cell-categoria="props">
-            <q-td :props="props" class="category-cell">
-              {{ props.row.categoria || 'Não informada' }}
+          <template #body-cell-status="props">
+            <q-td :props="props">
+              <span class="status-chip" :class="`status-${props.row.status}`">
+                {{ getStatusLabel(props.row.status) }}
+              </span>
+            </q-td>
+          </template>
+
+          <template #body-cell-data_prevista_devolucao="props">
+            <q-td :props="props" class="date-cell">
+              {{ formatDateTime(props.row.data_prevista_devolucao) }}
             </q-td>
           </template>
 
@@ -233,18 +294,19 @@ onMounted(() => {
                   round
                   dense
                   icon="edit"
-                  aria-label="Editar item"
-                  title="Editar item"
-                  @click="editItem(props.row.id)"
+                  aria-label="Editar emprestimo"
+                  title="Editar emprestimo"
+                  @click="editEmprestimo(props.row.id)"
                 />
                 <q-btn
+                  v-if="props.row.status !== 'devolvido'"
                   flat
                   round
                   dense
-                  icon="image"
-                  aria-label="Imagens do item"
-                  title="Imagens do item"
-                  @click="openImages(props.row.id)"
+                  icon="keyboard_return"
+                  aria-label="Registrar devolucao"
+                  title="Registrar devolucao"
+                  @click="requestReturn(props.row)"
                 />
                 <q-btn
                   flat
@@ -252,8 +314,8 @@ onMounted(() => {
                   dense
                   icon="delete"
                   color="negative"
-                  aria-label="Excluir item"
-                  title="Excluir item"
+                  aria-label="Excluir emprestimo"
+                  title="Excluir emprestimo"
                   @click="requestDelete(props.row)"
                 />
               </div>
@@ -264,10 +326,11 @@ onMounted(() => {
             <div class="mobile-grid-item">
               <article class="mobile-card">
                 <div class="mobile-copy">
-                  <h2>{{ props.row.descricao }}</h2>
-                  <p><strong>Estado:</strong> {{ props.row.estado || 'Sem estado' }}</p>
-                  <p><strong>Total:</strong> {{ props.row.quantidade_total }}</p>
-                  <p><strong>Categoria:</strong> {{ props.row.categoria || 'Não informada' }}</p>
+                  <h2>{{ props.row.membro_nome || 'Nao informado' }}</h2>
+                  <p><strong>Status:</strong> {{ getStatusLabel(props.row.status) }}</p>
+                  <p><strong>Itens:</strong> {{ props.row.itens_resumo || 'Nao informado' }}</p>
+                  <p><strong>Quantidade:</strong> {{ props.row.quantidade_total }}</p>
+                  <p><strong>Devolver em:</strong> {{ formatDateTime(props.row.data_prevista_devolucao) }}</p>
                 </div>
 
                 <div class="mobile-actions">
@@ -276,18 +339,19 @@ onMounted(() => {
                     round
                     dense
                     icon="edit"
-                    aria-label="Editar item"
-                    title="Editar item"
-                    @click="editItem(props.row.id)"
+                    aria-label="Editar emprestimo"
+                    title="Editar emprestimo"
+                    @click="editEmprestimo(props.row.id)"
                   />
                   <q-btn
+                    v-if="props.row.status !== 'devolvido'"
                     flat
                     round
                     dense
-                    icon="image"
-                    aria-label="Imagens do item"
-                    title="Imagens do item"
-                    @click="openImages(props.row.id)"
+                    icon="keyboard_return"
+                    aria-label="Registrar devolucao"
+                    title="Registrar devolucao"
+                    @click="requestReturn(props.row)"
                   />
                   <q-btn
                     flat
@@ -295,8 +359,8 @@ onMounted(() => {
                     dense
                     icon="delete"
                     color="negative"
-                    aria-label="Excluir item"
-                    title="Excluir item"
+                    aria-label="Excluir emprestimo"
+                    title="Excluir emprestimo"
                     @click="requestDelete(props.row)"
                   />
                 </div>
@@ -313,19 +377,76 @@ onMounted(() => {
       </section>
     </section>
 
-    <div v-if="pendingDeleteItem" class="modal-backdrop" @click.self="closeDeleteModal">
-      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="delete-item-title">
+    <div v-if="pendingDeleteLoan" class="modal-backdrop" @click.self="closeDeleteModal">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="delete-loan-title">
         <div class="modal-copy">
-          <h2 id="delete-item-title">Confirmar exclusão</h2>
-          <p>Deseja excluir o item <strong>{{ pendingDeleteItem.descricao }}</strong>?</p>
+          <h2 id="delete-loan-title">Confirmar exclusao</h2>
+          <p>
+            Deseja excluir o emprestimo
+            <strong>#{{ pendingDeleteLoan.id }}</strong>
+            de
+            <strong>{{ pendingDeleteLoan.membro_nome || 'membro selecionado' }}</strong>?
+          </p>
         </div>
         <div class="modal-actions">
-          <button type="button" class="icon-button icon-button-danger modal-icon" title="Confirmar exclusão" aria-label="Confirmar exclusão" @click="confirmDelete">
+          <button
+            type="button"
+            class="icon-button icon-button-danger modal-icon"
+            title="Confirmar exclusao"
+            aria-label="Confirmar exclusao"
+            :disabled="deleting"
+            @click="confirmDelete"
+          >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M9.55 18.2 4.8 13.45l1.4-1.4 3.35 3.35 8.25-8.25 1.4 1.4-9.65 9.65Z"/>
             </svg>
           </button>
-          <button type="button" class="icon-button modal-icon" title="Cancelar exclusão" aria-label="Cancelar exclusão" @click="closeDeleteModal">
+          <button
+            type="button"
+            class="icon-button modal-icon"
+            title="Cancelar exclusao"
+            aria-label="Cancelar exclusao"
+            @click="closeDeleteModal"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m12 10.6 4.95-4.95 1.4 1.4L13.4 12l4.95 4.95-1.4 1.4L12 13.4l-4.95 4.95-1.4-1.4L10.6 12 5.65 7.05l1.4-1.4L12 10.6Z"/>
+            </svg>
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <div v-if="pendingReturnLoan" class="modal-backdrop" @click.self="closeReturnModal">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="return-loan-title">
+        <div class="modal-copy">
+          <h2 id="return-loan-title">Registrar devolucao</h2>
+          <p>
+            Confirmar devolucao do emprestimo
+            <strong>#{{ pendingReturnLoan.id }}</strong>
+            para
+            <strong>{{ pendingReturnLoan.membro_nome || 'membro selecionado' }}</strong>?
+          </p>
+        </div>
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="icon-button modal-icon"
+            title="Confirmar devolucao"
+            aria-label="Confirmar devolucao"
+            :disabled="returning"
+            @click="confirmReturn"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M9.55 18.2 4.8 13.45l1.4-1.4 3.35 3.35 8.25-8.25 1.4 1.4-9.65 9.65Z"/>
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="icon-button modal-icon"
+            title="Cancelar devolucao"
+            aria-label="Cancelar devolucao"
+            @click="closeReturnModal"
+          >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m12 10.6 4.95-4.95 1.4 1.4L13.4 12l4.95 4.95-1.4 1.4L12 13.4l-4.95 4.95-1.4-1.4L10.6 12 5.65 7.05l1.4-1.4L12 10.6Z"/>
             </svg>
@@ -463,21 +584,21 @@ onMounted(() => {
   border: 1px solid #fecaca;
 }
 
-.items-table {
+.loans-table {
   border-radius: 20px;
   overflow: hidden;
 }
 
-.items-table :deep(.q-table__top),
-.items-table :deep(.q-table__bottom) {
+.loans-table :deep(.q-table__top),
+.loans-table :deep(.q-table__bottom) {
   display: none;
 }
 
-.items-table :deep(.q-table thead tr) {
+.loans-table :deep(.q-table thead tr) {
   background: #f5fbfb;
 }
 
-.items-table :deep(.q-table th) {
+.loans-table :deep(.q-table th) {
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -485,17 +606,18 @@ onMounted(() => {
   color: #0f766e;
 }
 
-.items-table :deep(.q-table th),
-.items-table :deep(.q-table td) {
+.loans-table :deep(.q-table th),
+.loans-table :deep(.q-table td) {
   padding: 14px 16px;
 }
 
-.items-table :deep(.q-table tbody tr:nth-child(even)) {
+.loans-table :deep(.q-table tbody tr:nth-child(even)) {
   background: #fcfefe;
 }
 
-.description-cell,
-.category-cell {
+.member-cell,
+.items-cell,
+.date-cell {
   max-width: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -514,10 +636,23 @@ onMounted(() => {
   min-height: 28px;
   padding: 0 12px;
   border-radius: 999px;
-  background: rgba(0, 138, 124, 0.1);
-  color: #0f766e;
   font-size: 0.84rem;
   font-weight: 800;
+}
+
+.status-ativo {
+  background: rgba(0, 138, 124, 0.1);
+  color: #0f766e;
+}
+
+.status-devolvido {
+  background: rgba(148, 163, 184, 0.15);
+  color: #475569;
+}
+
+.status-atrasado {
+  background: rgba(249, 115, 22, 0.15);
+  color: #c2410c;
 }
 
 .row-actions,

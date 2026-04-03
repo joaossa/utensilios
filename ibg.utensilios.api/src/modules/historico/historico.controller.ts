@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express'
-import { z } from 'zod'
+import { z, type ZodError } from 'zod'
 
 import { CreateHistoricoDTO, UpdateHistoricoDTO } from './historico.dto'
 import { HistoricoService } from './historico.service'
@@ -9,6 +9,10 @@ const IdParamDTO = z.object({
 })
 
 const service = new HistoricoService()
+
+function getFirstValidationMessage(error: ZodError) {
+  return error.issues[0]?.message || 'Dados invalidos para historico.'
+}
 
 export class HistoricoController {
   async list(_req: Request, res: Response) {
@@ -32,7 +36,7 @@ export class HistoricoController {
 
     if (!parsed.success) {
       return res.status(400).json({
-        message: 'Dados invalidos para historico.',
+        message: getFirstValidationMessage(parsed.error),
         errors: parsed.error.flatten(),
       })
     }
@@ -45,8 +49,15 @@ export class HistoricoController {
     const parsedParams = IdParamDTO.safeParse(req.params)
     const parsedBody = UpdateHistoricoDTO.safeParse(req.body)
 
-    if (!parsedParams.success || !parsedBody.success) {
-      return res.status(400).json({ message: 'Dados invalidos para atualizar historico.' })
+    if (!parsedParams.success) {
+      return res.status(400).json({ message: 'Identificador de historico invalido.' })
+    }
+
+    if (!parsedBody.success) {
+      return res.status(400).json({
+        message: getFirstValidationMessage(parsedBody.error),
+        errors: parsedBody.error.flatten(),
+      })
     }
 
     const historico = await service.update(parsedParams.data.id, parsedBody.data)

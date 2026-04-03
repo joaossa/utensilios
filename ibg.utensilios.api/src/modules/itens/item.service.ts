@@ -88,11 +88,12 @@ async function getNextItemCode() {
 }
 
 function buildEmprestimosAtivosSubquery(ignoreEmprestimoId?: number) {
-  const query = db('emprestimos as emp')
-    .select('emp.item_id')
-    .sum({ quantidade_emprestada: 'emp.quantidade' })
+  const query = db('item_emprestimos as ie')
+    .join('emprestimos as emp', 'emp.id', 'ie.emprestimo_id')
+    .select('ie.item_id')
+    .sum({ quantidade_emprestada: 'ie.quantidade' })
     .whereIn('emp.status', ACTIVE_LOAN_STATUSES)
-    .groupBy('emp.item_id')
+    .groupBy('ie.item_id')
 
   if (ignoreEmprestimoId !== undefined) {
     query.whereNot('emp.id', ignoreEmprestimoId)

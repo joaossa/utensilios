@@ -6,6 +6,7 @@ import { AuthController } from './auth.controller'
 const router = Router()
 const controller = new AuthController()
 
+router.post('/check-email', (req, res) => controller.checkEmail(req, res))
 router.post('/login', (req, res) => controller.login(req, res))
 router.get('/me', authMiddleware, (req, res) => controller.me(req, res))
 
