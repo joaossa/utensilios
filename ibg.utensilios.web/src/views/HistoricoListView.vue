@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useQuasar, type QTableProps } from 'quasar'
 
 import { deleteHistorico, listHistorico, type Historico } from '@/services/modules'
 
 const router = useRouter()
+const $q = useQuasar()
 
 const historicos = ref<Historico[]>([])
 const loading = ref(false)
@@ -12,6 +14,11 @@ const errorMessage = ref('')
 const searchTerm = ref('')
 const pendingDeleteRecord = ref<Historico | null>(null)
 const deleting = ref(false)
+const pagination = ref({
+  rowsPerPage: 0,
+  sortBy: 'item_descricao',
+  descending: false,
+})
 
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value))
@@ -32,6 +39,51 @@ function getTipoLabel(tipo: Historico['tipo_evento']) {
   if (tipo === 'emprestado') return 'Emprestado'
   return 'Devolvido'
 }
+
+const columns: QTableProps['columns'] = [
+  {
+    name: 'item_descricao',
+    required: true,
+    label: 'Item',
+    field: (row: Historico) => row.item_descricao || 'Item sem descricao',
+    align: 'left',
+    sortable: true,
+  },
+  {
+    name: 'tipo_evento',
+    label: 'Evento',
+    field: (row: Historico) => getTipoLabel(row.tipo_evento),
+    align: 'center',
+    sortable: true,
+  },
+  {
+    name: 'descricao',
+    label: 'Descricao',
+    field: (row: Historico) => row.descricao || 'Nao informada',
+    align: 'left',
+    sortable: true,
+  },
+  {
+    name: 'usuario_responsavel',
+    label: 'Responsavel',
+    field: (row: Historico) => row.usuario_responsavel || 'Nao informado',
+    align: 'left',
+    sortable: true,
+  },
+  {
+    name: 'data_evento',
+    label: 'Data',
+    field: (row: Historico) => formatDateTime(row.data_evento),
+    align: 'left',
+    sortable: true,
+  },
+  {
+    name: 'acoes',
+    label: 'Acoes',
+    field: (row: Historico) => row.id,
+    align: 'right',
+  },
+]
 
 const filteredHistoricos = computed(() => {
   const term = normalizeText(searchTerm.value)
@@ -54,6 +106,14 @@ const filteredHistoricos = computed(() => {
 
     return searchable.some((value) => normalizeText(value).includes(term))
   })
+})
+
+const noDataMessage = computed(() => {
+  if (historicos.value.length === 0) {
+    return 'Nenhum registro de historico cadastrado ate agora.'
+  }
+
+  return 'Nenhum registro encontrado para a pesquisa informada.'
 })
 
 async function loadHistorico() {
@@ -121,7 +181,7 @@ onMounted(() => {
     <section class="module-shell">
       <header class="module-header">
         <div class="module-header-copy">
-          <h1>Historico cadastrado</h1>
+          <h1 class="list-title">Historico cadastrado</h1>
           <p class="module-total">(Total: {{ historicos.length }})</p>
         </div>
 
@@ -137,70 +197,144 @@ onMounted(() => {
         </label>
 
         <div class="header-actions">
-          <button type="button" class="ghost-button" @click="goToCreate">Novo historico</button>
-          <button type="button" class="module-exit" @click="goToDashboard">Sair</button>
+          <q-btn
+            no-caps
+            unelevated
+            icon="add"
+            label="Novo"
+            class="header-action-primary"
+            @click="goToCreate"
+          />
+          <q-btn
+            round
+            unelevated
+            icon="logout"
+            class="module-exit module-exit-icon"
+            aria-label="Sair do sistema"
+            @click="goToDashboard"
+          />
         </div>
       </header>
 
       <section class="panel-card">
-        <p v-if="loading" class="status-copy">Carregando historico...</p>
-        <p v-else-if="errorMessage" class="feedback error">{{ errorMessage }}</p>
-        <p v-else-if="historicos.length === 0" class="status-copy">Nenhum registro de historico cadastrado ate agora.</p>
-        <p v-else-if="filteredHistoricos.length === 0" class="status-copy">
-          Nenhum registro encontrado para a pesquisa informada.
-        </p>
+        <p v-if="errorMessage" class="feedback error">{{ errorMessage }}</p>
 
-        <div v-else class="list-grid">
-          <article v-for="historico in filteredHistoricos" :key="historico.id" class="list-row">
-            <div class="item-main">
-              <h3>{{ historico.item_descricao || 'Item sem descricao' }}</h3>
+        <q-table
+          v-else
+          v-model:pagination="pagination"
+          flat
+          bordered
+          dense
+          hide-bottom
+          :rows="filteredHistoricos"
+          :columns="columns"
+          :loading="loading"
+          :grid="$q.screen.lt.md"
+          row-key="id"
+          class="items-table history-table"
+        >
+          <template #body-cell-item_descricao="props">
+            <q-td :props="props" class="item-cell">
+              {{ props.row.item_descricao || 'Item sem descricao' }}
+            </q-td>
+          </template>
+
+          <template #body-cell-tipo_evento="props">
+            <q-td :props="props">
+              <span class="status-chip">{{ getTipoLabel(props.row.tipo_evento) }}</span>
+            </q-td>
+          </template>
+
+          <template #body-cell-descricao="props">
+            <q-td :props="props" class="description-cell">
+              {{ props.row.descricao || 'Nao informada' }}
+            </q-td>
+          </template>
+
+          <template #body-cell-usuario_responsavel="props">
+            <q-td :props="props" class="responsible-cell">
+              {{ props.row.usuario_responsavel || 'Nao informado' }}
+            </q-td>
+          </template>
+
+          <template #body-cell-data_evento="props">
+            <q-td :props="props" class="date-cell">
+              {{ formatDateTime(props.row.data_evento) }}
+            </q-td>
+          </template>
+
+          <template #body-cell-acoes="props">
+            <q-td :props="props">
+              <div class="row-actions">
+                <q-btn
+                  flat
+                  round
+                  dense
+                  icon="edit"
+                  class="action-icon action-icon-edit"
+                  aria-label="Editar historico"
+                  title="Editar historico"
+                  @click="editHistorico(props.row.id)"
+                />
+                <q-btn
+                  flat
+                  round
+                  dense
+                  icon="delete"
+                  color="negative"
+                  class="action-icon action-icon-delete"
+                  aria-label="Excluir historico"
+                  title="Excluir historico"
+                  @click="requestDelete(props.row)"
+                />
+              </div>
+            </q-td>
+          </template>
+
+          <template #item="props">
+            <div class="mobile-grid-item">
+              <article class="mobile-card">
+                <div class="mobile-copy">
+                  <h2>{{ props.row.item_descricao || 'Item sem descricao' }}</h2>
+                  <p><strong>Evento:</strong> {{ getTipoLabel(props.row.tipo_evento) }}</p>
+                  <p><strong>Descricao:</strong> {{ props.row.descricao || 'Nao informada' }}</p>
+                  <p><strong>Responsavel:</strong> {{ props.row.usuario_responsavel || 'Nao informado' }}</p>
+                  <p><strong>Data:</strong> {{ formatDateTime(props.row.data_evento) }}</p>
+                </div>
+
+                <div class="mobile-actions">
+                  <q-btn
+                    flat
+                    round
+                    dense
+                    icon="edit"
+                    class="action-icon action-icon-edit"
+                    aria-label="Editar historico"
+                    title="Editar historico"
+                    @click="editHistorico(props.row.id)"
+                  />
+                  <q-btn
+                    flat
+                    round
+                    dense
+                    icon="delete"
+                    color="negative"
+                    class="action-icon action-icon-delete"
+                    aria-label="Excluir historico"
+                    title="Excluir historico"
+                    @click="requestDelete(props.row)"
+                  />
+                </div>
+              </article>
             </div>
+          </template>
 
-            <div class="item-cell item-state">
-              <span class="status-chip">{{ getTipoLabel(historico.tipo_evento) }}</span>
+          <template #no-data>
+            <div class="status-copy no-data-copy">
+              {{ noDataMessage }}
             </div>
-
-            <dl class="item-cell info-cell">
-              <dt>Descricao</dt>
-              <dd>{{ historico.descricao || 'Nao informada' }}</dd>
-            </dl>
-
-            <dl class="item-cell info-cell">
-              <dt>Responsavel</dt>
-              <dd>{{ historico.usuario_responsavel || 'Nao informado' }}</dd>
-            </dl>
-
-            <dl class="item-cell info-cell">
-              <dt>Data</dt>
-              <dd>{{ formatDateTime(historico.data_evento) }}</dd>
-            </dl>
-
-            <div class="row-actions">
-              <button
-                type="button"
-                class="icon-button"
-                title="Editar historico"
-                aria-label="Editar historico"
-                @click="editHistorico(historico.id)"
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M4 20h4l10-10-4-4L4 16v4Zm3.2-1.5H5.5v-1.7l8.1-8.1 1.7 1.7-8.1 8.1ZM19 9l-4-4 1.2-1.2a1.7 1.7 0 0 1 2.4 0l1.6 1.6a1.7 1.7 0 0 1 0 2.4L19 9Z"/>
-                </svg>
-              </button>
-              <button
-                type="button"
-                class="icon-button icon-button-danger"
-                title="Excluir historico"
-                aria-label="Excluir historico"
-                @click="requestDelete(historico)"
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v8h-2V9Zm4 0h2v8h-2V9ZM7 9h2v8H7V9Zm-1 11h12l1-13H5l1 13Z"/>
-                </svg>
-              </button>
-            </div>
-          </article>
-        </div>
+          </template>
+        </q-table>
       </section>
     </section>
 
@@ -287,15 +421,28 @@ onMounted(() => {
 }
 
 .module-header h1,
-.item-main h3,
-.modal-copy h2 {
+.modal-copy h2,
+.mobile-copy h2 {
   margin: 0;
   color: #172033;
 }
 
+.module-header h1 {
+  font-size: clamp(1.35rem, 1rem + 0.9vw, 1.85rem);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.list-title {
+  font-size: clamp(1.35rem, 1rem + 0.9vw, 1.85rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.2 !important;
+}
+
 .module-total,
 .status-copy,
-.modal-copy p {
+.modal-copy p,
+.mobile-copy p {
   margin: 0;
   color: #536579;
   line-height: 1.6;
@@ -349,6 +496,25 @@ onMounted(() => {
   color: #172033;
 }
 
+.header-action-primary {
+  min-height: 44px;
+  border-radius: 999px;
+  padding: 0 18px;
+  background: linear-gradient(135deg, #008a7c 0%, #0f766e 100%);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 10px 22px rgba(15, 35, 33, 0.08);
+}
+
+.module-exit-icon {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+  color: #0f766e;
+  border-color: rgba(15, 118, 110, 0.18);
+  box-shadow: 0 6px 18px rgba(15, 35, 33, 0.06);
+}
+
 .panel-card {
   padding: 20px;
   display: grid;
@@ -365,64 +531,62 @@ onMounted(() => {
   border: 1px solid #fecaca;
 }
 
-.list-grid {
-  display: grid;
-  gap: 12px;
-}
-
-.list-row {
+.items-table,
+.history-table {
   border-radius: 20px;
-  border: 1px solid #dbe4e8;
-  background: #fcfefe;
-  padding: 16px 18px;
-  display: grid;
-  grid-template-columns:
-    minmax(190px, 1.4fr)
-    minmax(120px, 0.9fr)
-    minmax(220px, 1.6fr)
-    minmax(160px, 1.1fr)
-    minmax(130px, 1fr)
-    auto;
-  gap: 12px;
-  align-items: center;
+  overflow: hidden;
 }
 
-.item-main h3 {
-  font-size: 1rem;
-  line-height: 1.35;
+.items-table :deep(.q-table__top),
+.items-table :deep(.q-table__bottom),
+.history-table :deep(.q-table__top),
+.history-table :deep(.q-table__bottom) {
+  display: none;
 }
 
-.item-cell {
-  min-width: 0;
-  display: grid;
-  gap: 4px;
+.items-table :deep(.q-table thead tr),
+.history-table :deep(.q-table thead tr) {
+  background: #f5fbfb;
 }
 
-.item-cell dt {
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
+.items-table :deep(.q-table th),
+.history-table :deep(.q-table th) {
   font-size: 0.68rem;
   font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: #0f766e;
 }
 
-.item-cell dd {
-  margin: 0;
-  color: #536579;
-  line-height: 1.35;
-  font-size: 0.92rem;
+.items-table :deep(.q-table th),
+.items-table :deep(.q-table td),
+.history-table :deep(.q-table th),
+.history-table :deep(.q-table td) {
+  padding: 14px 16px;
 }
 
-.info-cell dd {
+.items-table :deep(.q-table tbody tr:nth-child(even)),
+.history-table :deep(.q-table tbody tr:nth-child(even)) {
+  background: #fcfefe;
+}
+
+.item-cell,
+.description-cell,
+.responsible-cell {
+  max-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.item-state {
-  display: flex;
-  justify-content: center;
+.item-cell {
+  font-size: 0.94rem;
+  font-weight: 600;
+  color: #172033;
+}
+
+.date-cell {
+  white-space: nowrap;
 }
 
 .status-chip {
@@ -439,10 +603,64 @@ onMounted(() => {
 }
 
 .row-actions,
-.modal-actions {
+.modal-actions,
+.mobile-actions {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
+}
+
+:deep(.action-icon) {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: 12px;
+}
+
+:deep(.action-icon .q-icon) {
+  font-size: 1.1rem;
+}
+
+:deep(.action-icon-edit) {
+  color: #0f766e;
+  background: rgba(0, 138, 124, 0.1);
+}
+
+:deep(.action-icon-delete) {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.mobile-grid-item {
+  width: 100%;
+  padding: 2px;
+}
+
+.mobile-card {
+  border: 1px solid #dbe4e8;
+  border-radius: 18px;
+  background: #fcfefe;
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+}
+
+.mobile-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.mobile-copy h2 {
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.mobile-copy strong {
+  color: #172033;
+}
+
+.no-data-copy {
+  padding: 18px 10px;
 }
 
 .icon-button {
@@ -504,43 +722,47 @@ onMounted(() => {
 
   .header-actions {
     justify-content: flex-start;
-  }
-}
-
-@media (max-width: 860px) {
-  .list-row {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 14px;
-  }
-
-  .item-main,
-  .item-cell,
-  .item-state {
-    grid-column: 1 / -1;
-  }
-
-  .row-actions {
-    grid-column: 1 / -1;
-    justify-content: flex-start;
-  }
-
-  .item-state {
-    justify-content: flex-start;
-  }
-
-  .info-cell dd {
-    white-space: normal;
+    width: 100%;
   }
 }
 
 @media (max-width: 720px) {
+  .panel-card {
+    padding: 16px;
+  }
+
   .module-exit,
   .ghost-button {
     width: 100%;
   }
 
-  .modal-actions {
+  .module-exit-icon {
+    width: 44px;
+  }
+
+  .header-action-primary {
+    flex: 1 1 auto;
+  }
+
+  .modal-actions,
+  .mobile-actions {
     justify-content: flex-start;
+  }
+
+  .mobile-actions {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .status-chip {
+    min-height: 26px;
+    padding: 0 10px;
+    font-size: 0.78rem;
+  }
+
+  .icon-button {
+    width: 36px;
+    height: 36px;
   }
 }
 </style>

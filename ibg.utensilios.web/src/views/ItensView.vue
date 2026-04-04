@@ -234,20 +234,27 @@ onMounted(() => {
           <h1>Itens</h1>
         </div>
 
-        <button type="button" class="module-exit" @click="goToDashboard">Sair</button>
+        <div class="panel-exit-row">
+          <q-btn
+            round
+            unelevated
+            icon="logout"
+            class="module-exit module-exit-icon"
+            aria-label="Sair do sistema"
+            @click="goToDashboard"
+          />
+        </div>
       </header>
 
       <section class="panel-card">
-        <div v-if="editingId" class="panel-heading">
-          <div>
-            <h2>Editar item</h2>
-          </div>
+        <div v-if="editingId" class="panel-heading panel-heading-edit">
+          <h2 class="edit-label">Editar item</h2>
         </div>
 
         <p v-if="loading" class="status-copy">Preparando formulario...</p>
 
         <form v-else class="form-grid" @submit.prevent="handleSubmit">
-          <label class="field">
+          <label class="field field-shell-input">
             <span>Descrição</span>
             <textarea v-model="form.descricao" rows="2" />
             <small class="field-help">{{ form.descricao.length }}/{{ DESCRIPTION_MAX_LENGTH }}</small>
@@ -256,7 +263,7 @@ onMounted(() => {
             </small>
           </label>
 
-          <label class="field">
+          <label class="field field-shell-input">
             <span>Quantidade</span>
             <input
               :value="form.quantidade_total_input"
@@ -269,20 +276,20 @@ onMounted(() => {
             </small>
           </label>
 
-          <label class="field">
+          <label class="field field-shell-input">
             <span>Estado</span>
             <select v-model.number="form.estado_id">
-              <option :value="null">Selecione</option>
+              <option :value="null"></option>
               <option v-for="estado in estados" :key="estado.id" :value="estado.id">
                 {{ estado.descricao }}
               </option>
             </select>
           </label>
 
-          <label class="field">
+          <label class="field field-shell-input">
             <span>Categoria</span>
             <select v-model.number="form.categoria_id">
-              <option :value="null">Selecione</option>
+              <option :value="null"></option>
               <option v-for="categoria in categorias" :key="categoria.id" :value="categoria.id">
                 {{ categoria.descricao }}
               </option>
@@ -314,6 +321,7 @@ onMounted(() => {
             {{ deleting ? 'Excluindo...' : 'Excluir item' }}
           </button>
         </form>
+
       </section>
     </section>
   </main>
@@ -325,25 +333,31 @@ onMounted(() => {
   linear-gradient(180deg, #f3f7f7 0%, #edf3f4 100%); padding: clamp(12px, 2.4vw, 18px); box-sizing: border-box; }
 .module-shell { width: min(100%, 480px); margin: 0 auto; display: grid; gap: 12px; }
 .module-header, .panel-card { background: rgba(255, 255, 255, 0.94); border: 1px solid rgba(219, 228, 232, 0.95); border-radius: 20px; box-shadow: 0 10px 22px rgba(15, 35, 33, 0.07); }
-.module-header { padding: clamp(14px, 2.4vw, 18px); display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
-.module-header-copy { display: grid; gap: 8px; }
+.module-header { position: relative; min-height: 60px; padding: 8px 12px; display: block; }
+.module-header-copy { display: grid; gap: 2px; padding-right: 56px; }
 .module-header h1, .panel-heading h2 { margin: 0; color: #172033; }
 .module-header h1 { font-size: clamp(1.45rem, 2.8vw, 1.8rem); }
 .module-total, .status-copy { margin: 0; color: #536579; line-height: 1.6; }
 .module-total { font-weight: 800; }
 .module-exit, .primary-button, .ghost-button, .danger-button { min-height: 44px; border-radius: 999px; padding: 0 16px; font-weight: 700; font: inherit; }
 .module-exit, .ghost-button { border: 1px solid #c8d5d9; background: #fff; color: #172033; }
+.module-exit-icon { width: 44px; min-width: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center; color: #0f766e; border-color: rgba(15, 118, 110, 0.18); box-shadow: 0 6px 18px rgba(15, 35, 33, 0.06); }
 .primary-button { border: 0; background: linear-gradient(135deg, #008a7c 0%, #0f766e 100%); color: #fff; }
 .primary-button:disabled { opacity: 0.65; cursor: not-allowed; }
 .danger-button { border: 1px solid #fecaca; background: #fff1f2; color: #b91c1c; }
 .panel-card { padding: 14px; display: grid; gap: 14px; }
 .panel-heading { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.panel-heading-edit { justify-content: flex-end; }
+.edit-label { font-size: 0.55rem; font-weight: 800; text-align: right; }
 .panel-kicker { margin: 0; text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.74rem; font-weight: 800; color: #0f766e; }
 .form-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
 .field { display: grid; gap: 8px; }
 .field span { color: #314255; font-weight: 700; }
 .field input, .field select, .field textarea { min-height: 46px; border-radius: 14px; border: 1px solid #d6e0e4; background: #f7fbfb; padding: 0 14px; font: inherit; }
 .field textarea { min-height: 92px; padding-top: 12px; resize: vertical; }
+.field-shell-input { gap: 4px; padding: 10px 14px 12px; border: 1px solid #d6e0e4; border-radius: 14px; background: #f7fbfb; }
+.field-shell-input > span { font-size: 0.76rem; font-weight: 800; color: #536579; }
+.field-shell-input input, .field-shell-input select, .field-shell-input textarea { min-height: auto; padding: 0; border: 0; background: transparent; }
 .feedback-group, .secondary-action, .button-row { grid-column: 1 / -1; }
 .button-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .action-button { width: 100%; }
@@ -353,5 +367,6 @@ onMounted(() => {
 .feedback { margin: 0; padding: 12px 14px; border-radius: 14px; font-weight: 700; }
 .feedback.success { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
 .feedback.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
-@media (max-width: 720px) { .module-header { flex-direction: column; } .module-exit, .danger-button { width: 100%; } .button-row { grid-template-columns: 1fr; } }
+.panel-exit-row { position: absolute; right: 12px; bottom: 8px; display: flex; justify-content: flex-end; align-items: flex-end; }
+@media (max-width: 720px) { .module-header { flex-direction: column; } .danger-button { width: 100%; } .module-exit-icon { width: 44px; } .button-row { grid-template-columns: 1fr; } }
 </style>

@@ -79,6 +79,8 @@ const loanItemsColumns: QTableProps['columns'] = [
     field: (row: TemporaryLoanItem) => row.item_descricao || row.item_codigo || `Item ${row.item_id}`,
     align: 'left',
     sortable: true,
+    classes: 'description-column',
+    headerClasses: 'description-column',
   },
   {
     name: 'quantidade',
@@ -86,12 +88,20 @@ const loanItemsColumns: QTableProps['columns'] = [
     field: 'quantidade',
     align: 'center',
     sortable: true,
+    style: 'width: 88px',
+    headerStyle: 'width: 88px',
+    classes: 'quantity-column',
+    headerClasses: 'quantity-column',
   },
   {
     name: 'acoes',
     label: 'Acoes',
     field: (row: TemporaryLoanItem) => row.item_id,
     align: 'right',
+    style: 'width: 52px',
+    headerStyle: 'width: 52px',
+    classes: 'actions-column',
+    headerClasses: 'actions-column',
   },
 ]
 
@@ -155,7 +165,13 @@ function getMaxAvailableForItem(itemId: number) {
 }
 
 const selectedDraftItem = computed(() => itens.value.find((item) => item.id === itemDraft.value.item_id) ?? null)
-const selectedMember = computed(() => membros.value.find((membro) => membro.id === form.value.membro_id) ?? null)
+const selectedDraftAvailableQuantity = computed(() => {
+  if (selectedDraftItem.value === null) {
+    return ''
+  }
+
+  return String(getMaxAvailableForItem(selectedDraftItem.value.id))
+})
 
 const selectableItems = computed(() => {
   return itens.value.filter((item) => {
@@ -176,7 +192,7 @@ const draftQuantidadeParseResult = computed(() => {
     return {
       parsed: null as number | null,
       invalid: true,
-      message: 'Quantidade invalida. Informe um numero inteiro maior que zero.',
+      message: 'Informe a quantidade para emprestimo.',
     }
   }
 
@@ -184,7 +200,7 @@ const draftQuantidadeParseResult = computed(() => {
     return {
       parsed: null as number | null,
       invalid: true,
-      message: 'Quantidade invalida. Informe um numero inteiro maior que zero.',
+      message: 'Informe a quantidade para emprestimo.',
     }
   }
 
@@ -194,7 +210,7 @@ const draftQuantidadeParseResult = computed(() => {
     return {
       parsed: null as number | null,
       invalid: true,
-      message: 'Quantidade invalida. Informe um numero inteiro maior que zero.',
+      message: 'Informe a quantidade para emprestimo.',
     }
   }
 
@@ -225,13 +241,20 @@ const draftErrorMessage = computed(() => {
   const maxAvailable = getMaxAvailableForItem(selectedDraftItem.value.id)
 
   if (draftMergedQuantity.value !== null && draftMergedQuantity.value > maxAvailable) {
-    return `A quantidade para ${selectedDraftItem.value.codigo} nao pode ultrapassar ${maxAvailable} unidade(s) disponivel(is).`
+    return 'Quantidade excede o disponivel.'
   }
 
   return ''
 })
 
 const hasDraftError = computed(() => draftErrorMessage.value !== '')
+const draftInlineErrorMessage = computed(() => {
+  if (selectedDraftItem.value === null || draftQuantidadeParseResult.value.invalid) {
+    return ''
+  }
+
+  return draftErrorMessage.value
+})
 
 const hasInvalidDate = computed(() => {
   return !isFutureDateTimeLocal(form.value.data_prevista_devolucao)
@@ -306,7 +329,7 @@ async function loadScreen() {
 
 function handleDraftQuantidadeInput(event: Event) {
   const input = event.target as HTMLInputElement
-  itemDraft.value.quantidade_input = input.value
+  itemDraft.value.quantidade_input = input.value.replace(/\D/g, '').slice(0, 3)
 }
 
 function resetItemDraft() {
@@ -341,7 +364,7 @@ function removeLoanItem(itemId: number) {
 }
 
 function updateLoanItemQuantity(itemId: number, value: string) {
-  const normalized = value.replace(/\D/g, '')
+  const normalized = value.replace(/\D/g, '').slice(0, 3)
 
   loanItems.value = loanItems.value.map((item) => {
     if (item.item_id !== itemId) {
@@ -365,7 +388,7 @@ function getLoanItemQuantityError(item: TemporaryLoanItem) {
   const maxAvailable = getMaxAvailableForItem(item.item_id)
 
   if (item.quantidade > maxAvailable) {
-    return `Maximo disponivel: ${maxAvailable}.`
+    return 'Quantidade excede o disponivel.'
   }
 
   return ''
@@ -505,38 +528,42 @@ onMounted(() => {
           <h1>Empréstimos</h1>
         </div>
 
-        <button type="button" class="module-exit" @click="goToDashboard">Sair</button>
+        <div class="panel-exit-row">
+          <q-btn
+            round
+            unelevated
+            icon="logout"
+            class="module-exit module-exit-icon"
+            aria-label="Sair do sistema"
+            @click="goToDashboard"
+          />
+        </div>
       </header>
 
       <section class="panel-card">
-        <div v-if="editingId" class="panel-heading">
-          <div>
-            <h2>Editar emprestimo</h2>
-          </div>
+        <div v-if="editingId" class="panel-heading panel-heading-edit">
+          <h2 class="edit-label">Editar emprestimo</h2>
         </div>
 
         <p v-if="loading" class="status-copy">Preparando formulario...</p>
 
         <form v-else class="form-grid" @submit.prevent="handleSubmit">
-          <label class="field">
+          <label class="field field-shell-input">
             <span>Membro</span>
             <select v-model.number="form.membro_id">
-              <option :value="null">Selecione</option>
+              <option :value="null"></option>
               <option v-for="membro in membros" :key="membro.id" :value="membro.id">
                 {{ membro.nome }}
               </option>
             </select>
-            <small v-if="selectedMember" class="field-help">
-              Responsavel atual: {{ selectedMember.nome }}
-            </small>
           </label>
 
-          <label class="field">
+          <label class="field field-shell-input">
             <span>Devolver em</span>
             <input v-model="form.data_prevista_devolucao" type="datetime-local" />
           </label>
 
-          <label class="field field-span-2">
+          <label class="field field-shell-input field-span-2">
             <span>Observações</span>
             <textarea v-model="form.observacoes" rows="4" />
             <small class="field-help">
@@ -551,7 +578,6 @@ onMounted(() => {
             <div class="section-heading">
               <div>
                 <h3>Itens de empréstimo</h3>
-                <p>Adicione um ou mais itens antes de gravar o empréstimo.</p>
               </div>
               <div class="summary-inline">
                 <span class="summary-pill">Itens: {{ totalItensSelecionados }}</span>
@@ -560,28 +586,40 @@ onMounted(() => {
             </div>
 
             <div class="builder-grid">
-              <label class="field">
+              <label class="field field-shell-input">
                 <span>Item</span>
                 <select v-model.number="itemDraft.item_id">
-                  <option :value="null">Selecione</option>
+                  <option :value="null"></option>
                   <option v-for="item in selectableItems" :key="item.id" :value="item.id">
                     {{ item.descricao }}
                   </option>
                 </select>
               </label>
 
-              <label class="field">
-                <span>Quantidade</span>
-                <input
-                  :value="itemDraft.quantidade_input"
-                  inputmode="numeric"
-                  autocomplete="off"
-                  @input="handleDraftQuantidadeInput"
-                />
-                <small v-if="hasDraftError" class="field-error">
-                  {{ draftErrorMessage }}
-                </small>
-              </label>
+              <div class="quantity-pair">
+                <label class="field field-shell-input">
+                  <span>Qtde Disp.</span>
+                  <input
+                    :value="selectedDraftAvailableQuantity"
+                    readonly
+                    tabindex="-1"
+                  />
+                </label>
+
+                <label class="field field-shell-input">
+                  <span>Quantidade</span>
+                  <input
+                    :value="itemDraft.quantidade_input"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    maxlength="3"
+                    @input="handleDraftQuantidadeInput"
+                  />
+                  <small v-if="draftInlineErrorMessage" class="field-error">
+                    {{ draftInlineErrorMessage }}
+                  </small>
+                </label>
+              </div>
 
               <div class="builder-action">
                 <button type="button" class="ghost-button action-button" @click="addItemToLoan">
@@ -615,6 +653,7 @@ onMounted(() => {
                       :value="props.row.quantidade"
                       inputmode="numeric"
                       autocomplete="off"
+                      maxlength="3"
                       @input="updateLoanItemQuantity(props.row.item_id, ($event.target as HTMLInputElement).value)"
                     />
                     <small v-if="getLoanItemQuantityError(props.row)" class="field-error table-error">
@@ -625,7 +664,7 @@ onMounted(() => {
               </template>
 
               <template #body-cell-acoes="props">
-                <q-td :props="props">
+                <q-td :props="props" class="actions-cell">
                   <div class="row-actions">
                     <q-btn
                       flat
@@ -652,6 +691,7 @@ onMounted(() => {
                           :value="props.row.quantidade"
                           inputmode="numeric"
                           autocomplete="off"
+                          maxlength="3"
                           @input="updateLoanItemQuantity(props.row.item_id, ($event.target as HTMLInputElement).value)"
                         />
                         <small v-if="getLoanItemQuantityError(props.row)" class="field-error">
@@ -724,6 +764,7 @@ onMounted(() => {
             {{ deleting ? 'Excluindo...' : 'Excluir emprestimo' }}
           </button>
         </form>
+
       </section>
     </section>
 
@@ -779,7 +820,7 @@ onMounted(() => {
 }
 
 .module-shell {
-  width: min(100%, 980px);
+  width: min(100%, 480px);
   margin: 0 auto;
   display: grid;
   gap: 12px;
@@ -795,18 +836,21 @@ onMounted(() => {
 }
 
 .module-header {
-  padding: clamp(14px, 2.4vw, 18px);
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  align-items: flex-start;
+  position: relative;
+  min-height: 60px;
+  padding: 8px 12px;
+  display: block;
 }
 
 .module-header-copy,
 .modal-copy,
 .mobile-copy {
   display: grid;
-  gap: 8px;
+  gap: 2px;
+}
+
+.module-header-copy {
+  padding-right: 56px;
 }
 
 .module-header h1,
@@ -854,6 +898,18 @@ onMounted(() => {
   color: #172033;
 }
 
+.module-exit-icon {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f766e;
+  border-color: rgba(15, 118, 110, 0.18);
+  box-shadow: 0 6px 18px rgba(15, 35, 33, 0.06);
+}
+
 .primary-button {
   border: 0;
   background: linear-gradient(135deg, #008a7c 0%, #0f766e 100%);
@@ -874,7 +930,7 @@ onMounted(() => {
 .panel-card {
   padding: 14px;
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .panel-heading {
@@ -884,15 +940,26 @@ onMounted(() => {
   align-items: flex-start;
 }
 
+.panel-heading-edit {
+  justify-content: flex-end;
+}
+
+.edit-label {
+  font-size: 0.55rem;
+  font-weight: 800;
+  text-align: right;
+}
+
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 
 .field {
   display: grid;
   gap: 8px;
+  min-width: 0;
 }
 
 .field span {
@@ -903,6 +970,9 @@ onMounted(() => {
 .field input,
 .field select,
 .field textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   min-height: 46px;
   border-radius: 14px;
   border: 1px solid #d6e0e4;
@@ -912,9 +982,32 @@ onMounted(() => {
 }
 
 .field textarea {
-  min-height: 120px;
+  min-height: 92px;
   padding-top: 12px;
   resize: vertical;
+}
+
+.field-shell-input {
+  gap: 4px;
+  padding: 10px 14px 12px;
+  border: 1px solid #d6e0e4;
+  border-radius: 14px;
+  background: #f7fbfb;
+}
+
+.field-shell-input > span {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #536579;
+}
+
+.field-shell-input input,
+.field-shell-input select,
+.field-shell-input textarea {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .field-span-2,
@@ -935,19 +1028,17 @@ onMounted(() => {
 
 .items-builder {
   display: grid;
-  gap: 12px;
-  padding: 12px;
+  gap: 14px;
+  padding: 14px;
   border-radius: 18px;
   border: 1px solid #dbe4e8;
   background: #fcfefe;
+  min-width: 0;
 }
 
 .section-heading {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: flex-start;
-  flex-wrap: wrap;
+  display: grid;
+  gap: 8px;
 }
 
 .summary-inline {
@@ -969,19 +1060,32 @@ onMounted(() => {
 
 .builder-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(140px, 0.7fr) auto;
+  grid-template-columns: 1fr;
   gap: 12px;
   align-items: start;
+  min-width: 0;
 }
 
 .builder-action {
   display: grid;
-  align-self: end;
+  align-self: stretch;
+}
+
+.quantity-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  min-width: 0;
+}
+
+.field-shell-input input[readonly] {
+  cursor: default;
 }
 
 .loan-items-table {
   border-radius: 18px;
   overflow: hidden;
+  min-width: 0;
 }
 
 .loan-items-table :deep(.q-table__top),
@@ -1011,10 +1115,9 @@ onMounted(() => {
 }
 
 .description-cell {
-  max-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
 }
 
 .total-cell {
@@ -1022,14 +1125,27 @@ onMounted(() => {
   color: #172033;
 }
 
+.quantity-editor-cell {
+  width: 88px;
+  min-width: 88px;
+}
+
+.actions-cell {
+  width: 52px;
+  min-width: 52px;
+}
+
 .quantity-editor {
   display: grid;
   gap: 6px;
+  justify-items: end;
 }
 
 .quantity-editor input,
 .mobile-quantity-field input {
-  width: 100%;
+  width: 72px;
+  max-width: 72px;
+  text-align: center;
   min-height: 38px;
   border-radius: 12px;
   border: 1px solid #d6e0e4;
@@ -1048,7 +1164,7 @@ onMounted(() => {
 .modal-actions,
 .mobile-actions {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   justify-content: flex-end;
 }
 
@@ -1104,6 +1220,15 @@ onMounted(() => {
   border: 1px solid #fecaca;
 }
 
+.panel-exit-row {
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1155,32 +1280,18 @@ onMounted(() => {
   height: 48px;
 }
 
-@media (max-width: 920px) {
+@media (max-width: 720px) {
   .module-header,
-  .panel-heading,
-  .section-heading {
+  .panel-heading {
     flex-direction: column;
   }
 
-  .form-grid,
-  .builder-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .builder-action {
-    align-self: stretch;
-  }
-
-  .section-heading h3 {
-    font-size: 1rem;
-    line-height: 1.25;
-  }
-}
-
-@media (max-width: 720px) {
-  .module-exit,
   .danger-button {
     width: 100%;
+  }
+
+  .module-exit-icon {
+    width: 44px;
   }
 
   .panel-card {
@@ -1189,6 +1300,10 @@ onMounted(() => {
 
   .button-row {
     grid-template-columns: 1fr;
+  }
+
+  .quantity-pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .modal-actions,

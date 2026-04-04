@@ -82,6 +82,11 @@ function clearDeleteRequest() {
   pendingDeleteId.value = null
 }
 
+function clearMessages() {
+  feedback.value = ''
+  errorMessage.value = ''
+}
+
 function populateForm(imagem: ItemImagem) {
   editingId.value = imagem.id
   selectedFileLabel.value = imagem.nome_arquivo || 'Imagem cadastrada'
@@ -142,15 +147,18 @@ async function setSelectedFile(file: File | null | undefined) {
 }
 
 async function handleFileChange(event: Event) {
+  clearMessages()
   const input = event.target as HTMLInputElement
   await setSelectedFile(input.files?.[0])
 }
 
 function openCameraPicker() {
+  clearMessages()
   cameraInputRef.value?.click()
 }
 
 function openLibraryPicker() {
+  clearMessages()
   libraryInputRef.value?.click()
 }
 
@@ -182,6 +190,8 @@ const canSubmit = computed(() => {
 })
 
 async function loadScreen() {
+  clearMessages()
+
   if (!itemId.value) {
     errorMessage.value = 'Identificador do item invalido.'
     return
@@ -310,12 +320,19 @@ onMounted(() => {
 <template>
   <main class="module-page">
     <section class="module-shell">
-      <header class="module-header">
+      <header class="module-header module-header-compact">
         <div class="module-header-copy">
           <h1>Imagens</h1>
           <p v-if="item" class="module-total">{{ item.codigo }} - <strong>{{ item.descricao }}</strong></p>
         </div>
-        <button type="button" class="module-exit" @click="goToList">Voltar</button>
+        <q-btn
+          round
+          unelevated
+          icon="arrow_back"
+          class="module-exit module-exit-icon"
+          aria-label="Voltar para lista"
+          @click="goToList"
+        />
       </header>
 
       <section class="panel-card">
@@ -338,6 +355,24 @@ onMounted(() => {
             />
 
             <div class="upload-actions">
+              <q-btn
+                no-caps
+                unelevated
+                stack
+                icon="photo_camera"
+                label="Câmara"
+                class="upload-shortcut"
+                @click="openCameraPicker"
+              />
+              <q-btn
+                no-caps
+                unelevated
+                stack
+                icon="photo_library"
+                label="Arquivos"
+                class="upload-shortcut"
+                @click="openLibraryPicker"
+              />
               <button type="button" class="upload-button upload-button-primary" @click="openCameraPicker">
                 Câmara
               </button>
@@ -350,12 +385,12 @@ onMounted(() => {
           </label>
 
           <div class="field-row field-span-2">
-            <label class="field descricao-field">
+            <label class="field field-shell-input descricao-field">
               <span>Descrição</span>
               <input v-model="form.descricao" maxlength="255" />
             </label>
 
-            <label class="field ordem-field">
+            <label class="field field-shell-input ordem-field">
               <span>Ordem</span>
               <input v-model="form.ordem_input" inputmode="numeric" autocomplete="off" />
             </label>
@@ -458,23 +493,33 @@ onMounted(() => {
 .module-shell { width: min(100%, 480px); margin: 0 auto; display: grid; gap: 12px; }
 .module-header, .panel-card { background: rgba(255, 255, 255, 0.94); border: 1px solid rgba(219, 228, 232, 0.95); border-radius: 20px; box-shadow: 0 10px 22px rgba(15, 35, 33, 0.07); }
 .module-header { padding: clamp(14px, 2.4vw, 18px); display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
-.module-header-copy { display: grid; gap: 8px; }
+.module-header-compact { position: relative; min-height: 60px; padding: 8px 12px; display: block; }
+.module-header-copy { display: grid; gap: 2px; align-content: start; padding-right: 56px; }
 .module-header h1 { margin: 0; font-size: clamp(1.45rem, 2.8vw, 1.8rem); color: #172033; }
-.module-total, .status-copy, .field-help { margin: 0; color: #536579; line-height: 1.6; }
+.module-total, .status-copy, .field-help { margin: 0; color: #536579; line-height: 1.4; }
 .module-exit, .primary-button, .ghost-button, .danger-button, .upload-button { min-height: 44px; border-radius: 999px; padding: 0 16px; font-weight: 700; font: inherit; }
 .module-exit, .ghost-button, .upload-button-secondary { border: 1px solid #c8d5d9; background: #fff; color: #172033; }
 .primary-button, .upload-button-primary { border: 0; background: linear-gradient(135deg, #008a7c 0%, #0f766e 100%); color: #fff; }
+.module-exit-icon { width: 44px; min-width: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center; align-self: flex-end; color: #0f766e; border-color: rgba(15, 118, 110, 0.18); box-shadow: 0 6px 18px rgba(15, 35, 33, 0.06); }
+.module-header-compact .module-exit-icon { position: absolute; right: 12px; bottom: 8px; align-self: auto; }
 .danger-button { border: 1px solid #fecaca; background: #fff1f2; color: #b91c1c; }
 .panel-card { padding: 14px; display: grid; gap: 14px; }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .field { display: grid; gap: 8px; }
 .field span { color: #314255; font-weight: 700; }
 .field input { width: 100%; max-width: 100%; box-sizing: border-box; min-height: 46px; border-radius: 14px; border: 1px solid #d6e0e4; background: #f7fbfb; padding: 0 14px; font: inherit; }
+.field-shell-input { gap: 4px; padding: 10px 14px 12px; border: 1px solid #d6e0e4; border-radius: 14px; background: #f7fbfb; }
+.field-shell-input > span { font-size: 0.76rem; font-weight: 800; color: #536579; }
+.field-shell-input input { min-height: auto; padding: 0; border: 0; background: transparent; }
 .field-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 84px); gap: 12px; align-items: end; }
 .descricao-field, .ordem-field { min-width: 0; }
 .native-file-input { display: none; }
-.upload-actions { display: flex; flex-wrap: wrap; gap: 10px; }
-.upload-button { display: inline-flex; align-items: center; justify-content: center; }
+.upload-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.upload-button { display: none; }
+:deep(.upload-shortcut) { width: 96px; min-height: 98px; border-radius: 22px; background: #1f1f1f; color: #ffffff; box-shadow: 0 10px 24px rgba(15, 35, 33, 0.14); }
+:deep(.upload-shortcut .q-btn__content) { gap: 10px; }
+:deep(.upload-shortcut .q-icon) { width: 52px; height: 52px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); font-size: 1.7rem; }
+:deep(.upload-shortcut .block) { font-size: 0.88rem; font-weight: 700; }
 .field-span-2, .feedback-group, .primary-button { grid-column: 1 / -1; }
 .feedback-group { display: grid; gap: 10px; }
 .feedback { margin: 0; padding: 12px 14px; border-radius: 14px; font-weight: 700; }
@@ -498,8 +543,10 @@ onMounted(() => {
 @media (max-width: 720px) {
   .module-header { flex-direction: column; }
   .module-exit, .primary-button, .ghost-button, .danger-button, .upload-button { width: 100%; }
+  .module-exit-icon { width: 44px; align-self: flex-end; }
   .form-grid { grid-template-columns: 1fr; }
   .field-row { grid-template-columns: 1fr; }
+  .upload-actions { justify-content: center; }
   .modal-actions { justify-content: flex-start; }
 }
 </style>

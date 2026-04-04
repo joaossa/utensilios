@@ -247,20 +247,27 @@ onMounted(() => {
           <h1>Membros</h1>
         </div>
 
-        <button type="button" class="module-exit" @click="goToDashboard">Sair</button>
+        <div class="panel-exit-row">
+          <q-btn
+            round
+            unelevated
+            icon="logout"
+            class="module-exit module-exit-icon"
+            aria-label="Sair do sistema"
+            @click="goToDashboard"
+          />
+        </div>
       </header>
 
       <section class="panel-card">
-        <div v-if="editingId" class="panel-heading">
-          <div>
-            <h2>Editar membro</h2>
-          </div>
+        <div v-if="editingId" class="panel-heading panel-heading-edit">
+          <h2 class="edit-label">Editar membro</h2>
         </div>
 
         <p v-if="loading" class="status-copy">Preparando formulario...</p>
 
         <form v-else class="form-grid" @submit.prevent="handleSubmit">
-          <label class="field">
+          <label class="field field-shell-input">
             <span>Nome</span>
             <input
               v-model="form.nome"
@@ -274,14 +281,13 @@ onMounted(() => {
             </small>
           </label>
 
-          <label class="field">
+          <label class="field field-shell-input">
             <span>Telefone</span>
             <input
               :value="form.telefone"
               :maxlength="PHONE_MAX_LENGTH"
               inputmode="tel"
               autocomplete="tel"
-              placeholder="(71) 99999-0001"
               @input="handlePhoneInput"
             />
             <small v-if="hasInvalidPhone" class="field-error">
@@ -289,14 +295,13 @@ onMounted(() => {
             </small>
           </label>
 
-          <label class="field">
+          <label class="field field-shell-input">
             <span>CPF</span>
             <input
               :value="form.cpf"
               maxlength="14"
               inputmode="numeric"
               autocomplete="off"
-              placeholder="000.000.000-00"
               @input="handleCpfInput"
             />
             <small v-if="hasInvalidCpf" class="field-error">
@@ -304,14 +309,13 @@ onMounted(() => {
             </small>
           </label>
 
-          <label class="field">
+          <label class="field field-shell-input">
             <span>E-mail</span>
             <input
               :value="form.email"
               type="email"
               :maxlength="EMAIL_MAX_LENGTH"
               autocomplete="email"
-              placeholder="nome@dominio.com.br"
               @input="handleEmailInput"
             />
             <small v-if="hasInvalidEmail" class="field-error">
@@ -319,7 +323,7 @@ onMounted(() => {
             </small>
           </label>
 
-          <label class="field">
+          <label class="field field-shell-input">
             <span>Tipo</span>
             <select v-model="form.tipo">
               <option value="membro">Membro</option>
@@ -370,6 +374,7 @@ onMounted(() => {
             {{ deleting ? 'Excluindo...' : 'Excluir membro' }}
           </button>
         </form>
+
       </section>
     </section>
 
@@ -436,16 +441,16 @@ onMounted(() => {
 }
 
 .module-header {
-  padding: clamp(14px, 2.4vw, 18px);
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  align-items: flex-start;
+  position: relative;
+  min-height: 60px;
+  padding: 8px 12px;
+  display: block;
 }
 
 .module-header-copy {
   display: grid;
-  gap: 8px;
+  gap: 2px;
+  padding-right: 56px;
 }
 
 .module-header h1,
@@ -484,6 +489,18 @@ onMounted(() => {
   color: #172033;
 }
 
+.module-exit-icon {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f766e;
+  border-color: rgba(15, 118, 110, 0.18);
+  box-shadow: 0 6px 18px rgba(15, 35, 33, 0.06);
+}
+
 .primary-button {
   border: 0;
   background: linear-gradient(135deg, #008a7c 0%, #0f766e 100%);
@@ -514,6 +531,16 @@ onMounted(() => {
   align-items: flex-start;
 }
 
+.panel-heading-edit {
+  justify-content: flex-end;
+}
+
+.edit-label {
+  font-size: 0.55rem;
+  font-weight: 800;
+  text-align: right;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -538,6 +565,28 @@ onMounted(() => {
   background: #f7fbfb;
   padding: 0 14px;
   font: inherit;
+}
+
+.field-shell-input {
+  gap: 4px;
+  padding: 10px 14px 12px;
+  border: 1px solid #d6e0e4;
+  border-radius: 14px;
+  background: #f7fbfb;
+}
+
+.field-shell-input > span {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #536579;
+}
+
+.field-shell-input input,
+.field-shell-input select {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .feedback-group,
@@ -623,6 +672,15 @@ onMounted(() => {
   border: 1px solid #fecaca;
 }
 
+.panel-exit-row {
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -682,9 +740,12 @@ onMounted(() => {
     flex-direction: column;
   }
 
-  .module-exit,
   .danger-button {
     width: 100%;
+  }
+
+  .module-exit-icon {
+    width: 44px;
   }
 
   .button-row {

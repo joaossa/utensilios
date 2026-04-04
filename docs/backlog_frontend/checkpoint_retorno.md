@@ -92,6 +92,45 @@ Status da parada: segura para retomada
   - em [auth-session.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\utils\auth-session.ts):
     - a tipagem da sessao foi atualizada para incluir `nome`, acompanhando o retorno real da autenticacao
 
+- `ITENS-UX-003`:
+  - a navegacao interna de `Itens` e `Imagens` foi alinhada ao padrao visual do painel com prioridade para componentes do Quasar
+  - em [ItensView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\ItensView.vue):
+    - o botao textual `Sair` foi substituido pelo icone de logoff usado no painel
+    - o icone passou a ficar alinhado no cabecalho do card de `Itens`
+  - em [ItemImagensView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\ItemImagensView.vue):
+    - `Voltar` passou a ser representado por icone no padrao interno
+    - `Câmera` e `Arquivos` passaram a usar `q-btn` com icones empilhados e linguagem visual inspirada nas referencias fornecidas
+    - os botoes textuais antigos de upload foram ocultados para preservar a nova identidade visual
+
+- `ITENS-LISTA-003`:
+  - a lista de `Itens` foi alinhada visualmente ao padrao Quasar usado nas telas internas
+  - em [ItensListView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\ItensListView.vue):
+    - `Novo` passou a usar `q-btn` com o mesmo tratamento visual principal das telas internas
+    - `Sair` passou a usar icone de logoff no mesmo padrao do cabecalho de `Itens`
+    - a descricao dos itens foi rebaixada visualmente para ficar proporcional a `Estado`, `Total` e `Categoria`
+    - no modo mobile os botoes de acao passaram a permitir quebra e exibicao completa, evitando sumir o icone de editar em larguras como `390 x 844`
+
+- `ITENS-LISTA-004`:
+  - a visibilidade das acoes da lista de `Itens` foi reforcada no modo mobile
+  - em [ItensListView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\ItensListView.vue):
+    - os icones de `Editar`, `Imagens` e `Excluir` passaram a ter cor e fundo explicitos
+    - o botao `Editar` ganhou contraste proprio para nao desaparecer visualmente em telas estreitas
+
+- `ITEM-IMG-002`:
+  - o card superior da tela de `Imagens` foi compactado para ganhar mais area util
+  - em [ItemImagensView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\ItemImagensView.vue):
+    - o titulo `Imagens` foi aproximado do topo do card
+    - a descricao do item foi aproximada do titulo
+    - o icone de `Voltar` foi reposicionado para a lateral direita inferior do cabecalho do card
+    - os atalhos de `Câmera` e `Arquivos` foram reduzidos para um tamanho mais proporcional a tela
+    - os campos `Descrição` e `Ordem` passaram a exibir o label dentro do proprio bloco, no mesmo padrao visual adotado no login
+
+- `ITEM-IMG-003`:
+  - as mensagens da tela de `Imagens` passaram a ser limpas no inicio da abertura da tela e sempre que o utilizador inicia uma nova selecao de arquivo
+  - em [ItemImagensView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\ItemImagensView.vue):
+    - os avisos e erros sao limpos ao iniciar `loadScreen`
+    - os avisos e erros sao limpos ao acionar `Câmera`, `Arquivos` e ao iniciar a troca do arquivo selecionado
+
 - `ITENS-UX-002`:
   - a tela de cadastro de `Itens` foi compactada para uso mais confortavel em celular
   - em [ItensView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\ItensView.vue):
@@ -421,7 +460,95 @@ Status da parada: segura para retomada
 - nesta rodada de ajuste do `Painel` foi executado com sucesso:
   - `npm run build` em `ibg.utensilios.web`
   - `npm run test:unit -- LoginView` em `ibg.utensilios.web`
+- nesta rodada de refinamento visual de `Itens` e `Imagens` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+  - `npm run test:unit -- LoginView` em `ibg.utensilios.web`
+- nesta rodada de compactacao do card de `Imagens` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+  - `npm run test:unit -- LoginView` em `ibg.utensilios.web`
+- nesta rodada de limpeza de mensagens da tela de `Imagens` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+  - `npm run test:unit -- LoginView` em `ibg.utensilios.web`
+- nesta rodada de refinamento da lista de `Itens` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+  - `npm run test:unit -- LoginView` em `ibg.utensilios.web`
+- nesta rodada de reforco de contraste das acoes da lista de `Itens` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+  - `npm run test:unit -- LoginView` em `ibg.utensilios.web`
 - nesta rodada de pesquisa e modal na lista de itens foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de padronizacao visual dos botoes de navegacao interna foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+  - `npm run test:unit -- LoginView` em `ibg.utensilios.web`
+- nesta rodada de reposicionamento do botao de saida nos formularios internos foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de compactacao do card de titulo e realocacao do botao de saida para o rodape do cabecalho foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de restauracao da escala dos titulos e nova compactacao estrutural do card de cabecalho foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de reducao da altura do card de titulo da tela de `Imagens` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de reposicionamento do layout do cabecalho da tela de `Imagens` para o padrao visual esperado foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de alinhamento do cabecalho da tela de `Imagens` ao mesmo padrao estrutural de `Itens` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de alinhamento estrutural e responsivo de `Empréstimos` ao padrao de `Membros` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de internalizacao dos labels nos campos de `Empréstimos` e endurecimento do encaixe horizontal foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de compactacao dos labels de edicao e alinhamento estrutural de `Historico` ao padrao dos demais modulos foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de remocao do titulo interno grande de criacao em `Historico` para igualar a percepcao de largura das demais telas foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de endurecimento do envelope de largura de `Historico` para espelhar `Itens`, `Membros` e `Empréstimos` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de migracao da lista de `Historico` para o padrao `QTable` de `Itens` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de reaplicacao e confirmacao visual da lista de `Historico` no padrao de `Itens` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de endurecimento explicito do titulo e do envelope visual da `QTable` de `Historico/lista` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de limpeza dos textos auxiliares do bloco de itens em `Empréstimos` foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de ajuste visual e funcional do bloco de itens em `Empréstimos`, com `Qtde Disp.` somente leitura ao lado de `Quantidade` e sem exibicao inline da mensagem de quantidade invalida, foi executado com sucesso:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de refinamento das mensagens de validacao de quantidade em `Empréstimos`, a critica passou a identificar o item por nome e a explicar melhor o limite disponivel para emprestimo:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de simplificacao das mensagens de quantidade em `Empréstimos`, o texto de limite foi reduzido para uma forma mais direta e objetiva:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de limpeza adicional da tela de `Empréstimos`, foi removido o texto do responsavel atual e a mensagem de excesso de quantidade foi reduzida para `Quantidade excede o disponivel.`:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de refinamento da grade de itens escolhidos em `Empréstimos`, a descricao ganhou mais area util, a quantidade foi limitada visualmente a 3 digitos e sua coluna foi aproximada do icone de exclusao:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de ajuste da lista de `Empréstimos`, a coluna `Itens` passou a exibir todos os itens do mesmo emprestimo em vez de truncar a visualizacao para apenas um:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de alinhamento visual do formulario de `Historico`, os labels de `Item`, `Tipo de evento`, `Descrição` e `Usuário responsável` passaram para dentro dos campos no mesmo padrao dos demais modulos:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de alinhamento visual do formulario de `Itens`, os campos de `Descricao`, `Quantidade`, `Estado` e `Categoria` passaram para o padrao com label dentro do proprio campo:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de alinhamento visual do formulario de `Membros`, os campos de `Nome`, `Telefone`, `CPF`, `E-mail` e `Tipo` passaram para o padrao com label dentro do proprio campo:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de reorganizacao do cabecalho da lista de `Empréstimos`, o titulo com total passou a ocupar a primeira linha, a pesquisa a segunda e os botoes `+ Novo` e sair a terceira:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de refinamento da lista de `Empréstimos`, o card superior de titulo, pesquisa e acoes foi reduzido para aproximadamente metade da largura anterior:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de ajuste fino do cabecalho da lista de `Empréstimos`, os botoes `+ Novo` e sair passaram a ficar alinhados a direita dentro do card superior:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de compactacao da lista de `Empréstimos`, a grade passou a exibir apenas `Membro`, `Status`, `Devolver` e `Acoes`, com fonte menor e card na mesma largura do cabecalho superior:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de ajuste textual e estrutural da lista de `Empréstimos`, o titulo foi corrigido para `Empréstimos cadastrados`, `Ações` recebeu acentuacao e os cards passaram a ficar centralizados na tela:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de alinhamento da lista de `Membros` ao padrao de `Empréstimos/lista`, foram igualadas largura, centralizacao, disposicao vertical do cabecalho, responsividade e compactacao visual da grade:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de enxugamento da grade de `Membros/lista`, a tabela passou a exibir apenas `Nome`, `Telefone` e `Ações`, inclusive no modo mobile:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de ajuste fino da grade de `Membros/lista`, a coluna `Telefone` foi compactada e aproximada visualmente de `Ações`, liberando mais area util para `Nome`:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de alinhamento de `Itens/lista` ao mesmo padrao de `Membros/lista` e `Empréstimos/lista`, o cabecalho passou para disposicao vertical, os cards ficaram centralizados e com mesma largura, a coluna `Descrição` passou a quebrar linha e a grade foi reduzida para `Descrição`, `Estado`, `Total` e `Ações`:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de enxugamento final da grade de `Itens/lista`, a coluna `Estado` foi removida e a listagem passou a exibir apenas `Descrição`, `Total` e `Ações`:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de correcao textual de `Itens/lista`, os labels das colunas foram normalizados para `DESCRICAO`, `TOTAL` e `ACOES`, e o texto do campo de pesquisa foi simplificado:
   - `npm run build` em `ibg.utensilios.web`
 - nenhuma mudanca funcional adicional foi aplicada nesta rodada; o ganho desta etapa foi endurecer a baseline documental para deploy
 - os novos scripts PowerShell foram validados por parse sintatico, sem execucao completa do fluxo local
@@ -462,7 +589,12 @@ Status da parada: segura para retomada
   - `npm run test:unit -- LoginView` em `ibg.utensilios.web`
   - `curl http://localhost:3001/health`
   - `.\iniciarDev.ps1`
-  - `.\validarDev.ps1`
+- `.\validarDev.ps1`
+
+- nesta rodada de correcao do modo mobile de `Membros/lista`, o nome do membro foi reduzido para escala proporcional e o botao de editar voltou a ganhar contraste e espaco visual ao lado do excluir:
+  - `npm run build` em `ibg.utensilios.web`
+- nesta rodada de correcao do modo mobile de `Empréstimos/lista`, o nome do membro no card foi reduzido para escala proporcional e os botoes de editar, devolver e excluir passaram a usar o mesmo contraste visual dos demais modulos:
+  - `npm run build` em `ibg.utensilios.web`
 
 ## Observacoes de continuidade
 

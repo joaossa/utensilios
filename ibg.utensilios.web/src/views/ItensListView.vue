@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar, type QTableProps } from 'quasar'
@@ -23,35 +23,21 @@ const columns: QTableProps['columns'] = [
   {
     name: 'descricao',
     required: true,
-    label: 'Descrição',
+    label: 'DESCRICAO',
     field: 'descricao',
     align: 'left',
     sortable: true,
   },
   {
-    name: 'estado',
-    label: 'Estado',
-    field: (row: Item) => row.estado || 'Sem estado',
-    align: 'center',
-    sortable: true,
-  },
-  {
     name: 'quantidade_total',
-    label: 'Total',
+    label: 'TOTAL',
     field: 'quantidade_total',
     align: 'center',
     sortable: true,
   },
   {
-    name: 'categoria',
-    label: 'Categoria',
-    field: (row: Item) => row.categoria || 'Não informada',
-    align: 'left',
-    sortable: true,
-  },
-  {
     name: 'acoes',
-    label: 'Ações',
+    label: 'ACOES',
     field: (row: Item) => row.id,
     align: 'right',
   },
@@ -96,7 +82,7 @@ const filteredItems = computed(() => {
 
 const noDataMessage = computed(() => {
   if (items.value.length === 0) {
-    return 'Nenhum item cadastrado até agora.'
+    return 'Nenhum item cadastrado atÃ© agora.'
   }
 
   return 'Nenhum item encontrado para a pesquisa informada.'
@@ -108,7 +94,7 @@ async function loadItems() {
   try {
     items.value = await listItens()
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : 'Não foi possível listar os itens.'
+    errorMessage.value = error instanceof Error ? error.message : 'NÃ£o foi possÃ­vel listar os itens.'
   } finally {
     loading.value = false
   }
@@ -149,7 +135,7 @@ async function confirmDelete() {
     closeDeleteModal()
     await loadItems()
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : 'Não foi possível excluir o item.'
+    errorMessage.value = error instanceof Error ? error.message : 'NÃ£o foi possÃ­vel excluir o item.'
   }
 }
 
@@ -174,13 +160,27 @@ onMounted(() => {
           <input
             v-model="searchTerm"
             type="text"
-            placeholder="Pesquisar por descrição, categoria, estado ou total..."
+            placeholder="Pesquisar por descricao ou total..."
           />
         </label>
 
         <div class="header-actions">
-          <button type="button" class="ghost-button" @click="goToCreate">Novo</button>
-          <button type="button" class="module-exit" @click="goToDashboard">Sair</button>
+          <q-btn
+            no-caps
+            unelevated
+            icon="add"
+            label="Novo"
+            class="header-action-primary"
+            @click="goToCreate"
+          />
+          <q-btn
+            round
+            unelevated
+            icon="logout"
+            class="module-exit module-exit-icon"
+            aria-label="Sair do sistema"
+            @click="goToDashboard"
+          />
         </div>
       </header>
 
@@ -207,21 +207,9 @@ onMounted(() => {
             </q-td>
           </template>
 
-          <template #body-cell-estado="props">
-            <q-td :props="props">
-              <span class="status-chip">{{ props.row.estado || 'Sem estado' }}</span>
-            </q-td>
-          </template>
-
           <template #body-cell-quantidade_total="props">
             <q-td :props="props" class="total-cell">
               {{ props.row.quantidade_total }}
-            </q-td>
-          </template>
-
-          <template #body-cell-categoria="props">
-            <q-td :props="props" class="category-cell">
-              {{ props.row.categoria || 'Não informada' }}
             </q-td>
           </template>
 
@@ -233,6 +221,7 @@ onMounted(() => {
                   round
                   dense
                   icon="edit"
+                  class="action-icon action-icon-edit"
                   aria-label="Editar item"
                   title="Editar item"
                   @click="editItem(props.row.id)"
@@ -242,6 +231,7 @@ onMounted(() => {
                   round
                   dense
                   icon="image"
+                  class="action-icon action-icon-image"
                   aria-label="Imagens do item"
                   title="Imagens do item"
                   @click="openImages(props.row.id)"
@@ -252,6 +242,7 @@ onMounted(() => {
                   dense
                   icon="delete"
                   color="negative"
+                  class="action-icon action-icon-delete"
                   aria-label="Excluir item"
                   title="Excluir item"
                   @click="requestDelete(props.row)"
@@ -265,9 +256,7 @@ onMounted(() => {
               <article class="mobile-card">
                 <div class="mobile-copy">
                   <h2>{{ props.row.descricao }}</h2>
-                  <p><strong>Estado:</strong> {{ props.row.estado || 'Sem estado' }}</p>
                   <p><strong>Total:</strong> {{ props.row.quantidade_total }}</p>
-                  <p><strong>Categoria:</strong> {{ props.row.categoria || 'Não informada' }}</p>
                 </div>
 
                 <div class="mobile-actions">
@@ -276,6 +265,7 @@ onMounted(() => {
                     round
                     dense
                     icon="edit"
+                    class="action-icon action-icon-edit"
                     aria-label="Editar item"
                     title="Editar item"
                     @click="editItem(props.row.id)"
@@ -285,6 +275,7 @@ onMounted(() => {
                     round
                     dense
                     icon="image"
+                    class="action-icon action-icon-image"
                     aria-label="Imagens do item"
                     title="Imagens do item"
                     @click="openImages(props.row.id)"
@@ -295,6 +286,7 @@ onMounted(() => {
                     dense
                     icon="delete"
                     color="negative"
+                    class="action-icon action-icon-delete"
                     aria-label="Excluir item"
                     title="Excluir item"
                     @click="requestDelete(props.row)"
@@ -316,16 +308,16 @@ onMounted(() => {
     <div v-if="pendingDeleteItem" class="modal-backdrop" @click.self="closeDeleteModal">
       <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="delete-item-title">
         <div class="modal-copy">
-          <h2 id="delete-item-title">Confirmar exclusão</h2>
+          <h2 id="delete-item-title">Confirmar exclusÃ£o</h2>
           <p>Deseja excluir o item <strong>{{ pendingDeleteItem.descricao }}</strong>?</p>
         </div>
         <div class="modal-actions">
-          <button type="button" class="icon-button icon-button-danger modal-icon" title="Confirmar exclusão" aria-label="Confirmar exclusão" @click="confirmDelete">
+          <button type="button" class="icon-button icon-button-danger modal-icon" title="Confirmar exclusÃ£o" aria-label="Confirmar exclusÃ£o" @click="confirmDelete">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M9.55 18.2 4.8 13.45l1.4-1.4 3.35 3.35 8.25-8.25 1.4 1.4-9.65 9.65Z"/>
             </svg>
           </button>
-          <button type="button" class="icon-button modal-icon" title="Cancelar exclusão" aria-label="Cancelar exclusão" @click="closeDeleteModal">
+          <button type="button" class="icon-button modal-icon" title="Cancelar exclusÃ£o" aria-label="Cancelar exclusÃ£o" @click="closeDeleteModal">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m12 10.6 4.95-4.95 1.4 1.4L13.4 12l4.95 4.95-1.4 1.4L12 13.4l-4.95 4.95-1.4-1.4L10.6 12 5.65 7.05l1.4-1.4L12 10.6Z"/>
             </svg>
@@ -363,11 +355,14 @@ onMounted(() => {
 }
 
 .module-header {
+  width: min(100%, 560px);
+  box-sizing: border-box;
+  justify-self: center;
   padding: clamp(18px, 2.8vw, 28px);
   display: grid;
-  grid-template-columns: auto minmax(280px, 1fr) auto;
-  gap: 20px;
-  align-items: center;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  align-items: stretch;
 }
 
 .module-header-copy {
@@ -447,7 +442,29 @@ onMounted(() => {
   color: #172033;
 }
 
+.header-action-primary {
+  min-height: 44px;
+  border-radius: 999px;
+  padding: 0 18px;
+  background: linear-gradient(135deg, #008a7c 0%, #0f766e 100%);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 10px 22px rgba(15, 35, 33, 0.08);
+}
+
+.module-exit-icon {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+  color: #0f766e;
+  border-color: rgba(15, 118, 110, 0.18);
+  box-shadow: 0 6px 18px rgba(15, 35, 33, 0.06);
+}
+
 .panel-card {
+  width: min(100%, 560px);
+  box-sizing: border-box;
+  justify-self: center;
   padding: 20px;
   display: grid;
   gap: 14px;
@@ -478,7 +495,7 @@ onMounted(() => {
 }
 
 .items-table :deep(.q-table th) {
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -487,37 +504,29 @@ onMounted(() => {
 
 .items-table :deep(.q-table th),
 .items-table :deep(.q-table td) {
-  padding: 14px 16px;
+  padding: 10px 12px;
+  font-size: 0.8rem;
 }
 
 .items-table :deep(.q-table tbody tr:nth-child(even)) {
   background: #fcfefe;
 }
 
-.description-cell,
-.category-cell {
-  max-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.description-cell {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+.description-cell {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #172033;
 }
 
 .total-cell {
   font-weight: 800;
   color: #172033;
-}
-
-.status-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 28px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: rgba(0, 138, 124, 0.1);
-  color: #0f766e;
-  font-size: 0.84rem;
-  font-weight: 800;
 }
 
 .row-actions,
@@ -526,6 +535,31 @@ onMounted(() => {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
+}
+
+:deep(.action-icon) {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: 12px;
+}
+
+:deep(.action-icon .q-icon) {
+  font-size: 1.1rem;
+}
+
+:deep(.action-icon-edit) {
+  color: #0f766e;
+  background: rgba(0, 138, 124, 0.1);
+}
+
+:deep(.action-icon-image) {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.1);
+}
+
+:deep(.action-icon-delete) {
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .mobile-grid-item {
@@ -545,6 +579,12 @@ onMounted(() => {
 .mobile-copy {
   display: grid;
   gap: 6px;
+}
+
+.mobile-copy h2 {
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .mobile-copy strong {
@@ -608,12 +648,9 @@ onMounted(() => {
 }
 
 @media (max-width: 920px) {
-  .module-header {
-    grid-template-columns: 1fr;
-  }
-
   .header-actions {
-    justify-content: flex-start;
+    justify-content: flex-end;
+    width: 100%;
   }
 }
 
@@ -627,15 +664,22 @@ onMounted(() => {
     width: 100%;
   }
 
+  .module-exit-icon {
+    width: 44px;
+  }
+
+  .header-action-primary {
+    flex: 1 1 auto;
+  }
+
   .modal-actions,
   .mobile-actions {
     justify-content: flex-start;
   }
 
-  .status-chip {
-    min-height: 26px;
-    padding: 0 10px;
-    font-size: 0.78rem;
+  .mobile-actions {
+    flex-wrap: wrap;
+    gap: 10px;
   }
 
   .icon-button {
@@ -644,3 +688,4 @@ onMounted(() => {
   }
 }
 </style>
+

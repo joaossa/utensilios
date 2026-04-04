@@ -43,20 +43,8 @@ const columns: QTableProps['columns'] = [
     field: 'nome',
     align: 'left',
     sortable: true,
-  },
-  {
-    name: 'ativo',
-    label: 'Ativo',
-    field: (row: Membro) => (row.ativo ? 'Ativo' : 'Inativo'),
-    align: 'center',
-    sortable: true,
-  },
-  {
-    name: 'tipo',
-    label: 'Tipo',
-    field: (row: Membro) => getTipoLabel(row.tipo),
-    align: 'left',
-    sortable: true,
+    classes: 'name-column',
+    headerClasses: 'name-column',
   },
   {
     name: 'telefone',
@@ -64,12 +52,20 @@ const columns: QTableProps['columns'] = [
     field: (row: Membro) => (row.telefone ? formatPhoneInput(row.telefone) : 'Nao informado'),
     align: 'left',
     sortable: true,
+    style: 'width: 132px',
+    headerStyle: 'width: 132px',
+    classes: 'phone-column',
+    headerClasses: 'phone-column',
   },
   {
     name: 'acoes',
-    label: 'Acoes',
+    label: 'Ações',
     field: (row: Membro) => row.id,
     align: 'right',
+    style: 'width: 84px',
+    headerStyle: 'width: 84px',
+    classes: 'actions-column',
+    headerClasses: 'actions-column',
   },
 ]
 
@@ -180,8 +176,22 @@ onMounted(() => {
         </label>
 
         <div class="header-actions">
-          <button type="button" class="ghost-button" @click="goToCreate">Novo</button>
-          <button type="button" class="module-exit" @click="goToDashboard">Sair</button>
+          <q-btn
+            no-caps
+            unelevated
+            icon="add"
+            label="Novo"
+            class="header-action-primary"
+            @click="goToCreate"
+          />
+          <q-btn
+            round
+            unelevated
+            icon="logout"
+            class="module-exit module-exit-icon"
+            aria-label="Sair do sistema"
+            @click="goToDashboard"
+          />
         </div>
       </header>
 
@@ -208,20 +218,6 @@ onMounted(() => {
             </q-td>
           </template>
 
-          <template #body-cell-ativo="props">
-            <q-td :props="props">
-              <span class="status-chip" :class="{ 'status-chip-off': !props.row.ativo }">
-                {{ props.row.ativo ? 'Ativo' : 'Inativo' }}
-              </span>
-            </q-td>
-          </template>
-
-          <template #body-cell-tipo="props">
-            <q-td :props="props" class="type-cell">
-              {{ getTipoLabel(props.row.tipo) }}
-            </q-td>
-          </template>
-
           <template #body-cell-telefone="props">
             <q-td :props="props" class="phone-cell">
               {{ props.row.telefone ? formatPhoneInput(props.row.telefone) : 'Nao informado' }}
@@ -236,6 +232,7 @@ onMounted(() => {
                   round
                   dense
                   icon="edit"
+                  class="action-icon action-icon-edit"
                   aria-label="Editar membro"
                   title="Editar membro"
                   @click="editMembro(props.row.id)"
@@ -246,6 +243,7 @@ onMounted(() => {
                   dense
                   icon="delete"
                   color="negative"
+                  class="action-icon action-icon-delete"
                   aria-label="Excluir membro"
                   title="Excluir membro"
                   @click="requestDelete(props.row)"
@@ -259,8 +257,6 @@ onMounted(() => {
               <article class="mobile-card">
                 <div class="mobile-copy">
                   <h2>{{ props.row.nome }}</h2>
-                  <p><strong>Ativo:</strong> {{ props.row.ativo ? 'Ativo' : 'Inativo' }}</p>
-                  <p><strong>Tipo:</strong> {{ getTipoLabel(props.row.tipo) }}</p>
                   <p><strong>Telefone:</strong> {{ props.row.telefone ? formatPhoneInput(props.row.telefone) : 'Nao informado' }}</p>
                 </div>
 
@@ -270,6 +266,7 @@ onMounted(() => {
                     round
                     dense
                     icon="edit"
+                    class="action-icon action-icon-edit"
                     aria-label="Editar membro"
                     title="Editar membro"
                     @click="editMembro(props.row.id)"
@@ -280,6 +277,7 @@ onMounted(() => {
                     dense
                     icon="delete"
                     color="negative"
+                    class="action-icon action-icon-delete"
                     aria-label="Excluir membro"
                     title="Excluir membro"
                     @click="requestDelete(props.row)"
@@ -361,11 +359,14 @@ onMounted(() => {
 }
 
 .module-header {
+  width: min(100%, 560px);
+  box-sizing: border-box;
+  justify-self: center;
   padding: clamp(18px, 2.8vw, 28px);
   display: grid;
-  grid-template-columns: auto minmax(280px, 1fr) auto;
-  gap: 20px;
-  align-items: center;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  align-items: stretch;
 }
 
 .module-header-copy {
@@ -382,7 +383,7 @@ onMounted(() => {
   color: #172033;
 }
 
-.module-title {
+.module-header h1 {
   font-size: clamp(1.35rem, 1rem + 0.9vw, 1.85rem);
   font-weight: 800;
   line-height: 1.2;
@@ -445,7 +446,29 @@ onMounted(() => {
   color: #172033;
 }
 
+.header-action-primary {
+  min-height: 44px;
+  border-radius: 999px;
+  padding: 0 18px;
+  background: linear-gradient(135deg, #008a7c 0%, #0f766e 100%);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 10px 22px rgba(15, 35, 33, 0.08);
+}
+
+.module-exit-icon {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+  color: #0f766e;
+  border-color: rgba(15, 118, 110, 0.18);
+  box-shadow: 0 6px 18px rgba(15, 35, 33, 0.06);
+}
+
 .panel-card {
+  width: min(100%, 560px);
+  box-sizing: border-box;
+  justify-self: center;
   padding: 20px;
   display: grid;
   gap: 14px;
@@ -476,7 +499,7 @@ onMounted(() => {
 }
 
 .members-table :deep(.q-table th) {
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -485,7 +508,8 @@ onMounted(() => {
 
 .members-table :deep(.q-table th),
 .members-table :deep(.q-table td) {
-  padding: 14px 16px;
+  padding: 10px 12px;
+  font-size: 0.8rem;
 }
 
 .members-table :deep(.q-table tbody tr:nth-child(even)) {
@@ -493,7 +517,6 @@ onMounted(() => {
 }
 
 .name-cell,
-.type-cell,
 .phone-cell {
   max-width: 0;
   white-space: nowrap;
@@ -501,22 +524,16 @@ onMounted(() => {
   text-overflow: ellipsis;
 }
 
-.status-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 28px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: rgba(0, 138, 124, 0.1);
-  color: #0f766e;
-  font-size: 0.84rem;
-  font-weight: 800;
+.phone-cell {
+  text-align: right;
 }
 
-.status-chip-off {
-  background: rgba(148, 163, 184, 0.15);
-  color: #475569;
+.members-table :deep(.phone-column) {
+  width: 132px;
+}
+
+.members-table :deep(.actions-column) {
+  width: 84px;
 }
 
 .row-actions,
@@ -525,6 +542,26 @@ onMounted(() => {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
+}
+
+:deep(.action-icon) {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: 12px;
+}
+
+:deep(.action-icon .q-icon) {
+  font-size: 1.1rem;
+}
+
+:deep(.action-icon-edit) {
+  color: #0f766e;
+  background: rgba(0, 138, 124, 0.1);
+}
+
+:deep(.action-icon-delete) {
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .mobile-grid-item {
@@ -544,6 +581,12 @@ onMounted(() => {
 .mobile-copy {
   display: grid;
   gap: 6px;
+}
+
+.mobile-copy h2 {
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .mobile-copy strong {
@@ -607,12 +650,9 @@ onMounted(() => {
 }
 
 @media (max-width: 920px) {
-  .module-header {
-    grid-template-columns: 1fr;
-  }
-
   .header-actions {
-    justify-content: flex-start;
+    justify-content: flex-end;
+    width: 100%;
   }
 }
 
@@ -626,15 +666,22 @@ onMounted(() => {
     width: 100%;
   }
 
+  .module-exit-icon {
+    width: 44px;
+  }
+
+  .header-action-primary {
+    flex: 1 1 auto;
+  }
+
   .modal-actions,
   .mobile-actions {
     justify-content: flex-start;
   }
 
-  .status-chip {
-    min-height: 26px;
-    padding: 0 10px;
-    font-size: 0.78rem;
+  .mobile-actions {
+    flex-wrap: wrap;
+    gap: 10px;
   }
 
   .icon-button {

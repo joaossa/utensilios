@@ -41,6 +41,19 @@ function getStatusLabel(status: Emprestimo['status']) {
   return 'Ativo'
 }
 
+function formatLoanItem(item: Emprestimo['itens'][number]) {
+  const nome = item.item_descricao || item.item_codigo || `Item ${item.item_id}`
+  return item.quantidade > 1 ? `${nome} (${item.quantidade})` : nome
+}
+
+function getLoanItemsDisplay(emprestimo: Emprestimo) {
+  if (emprestimo.itens.length === 0) {
+    return ['Nao informado']
+  }
+
+  return emprestimo.itens.map((item) => formatLoanItem(item))
+}
+
 const columns: QTableProps['columns'] = [
   {
     name: 'membro_nome',
@@ -48,20 +61,6 @@ const columns: QTableProps['columns'] = [
     label: 'Membro',
     field: (row: Emprestimo) => row.membro_nome || 'Nao informado',
     align: 'left',
-    sortable: true,
-  },
-  {
-    name: 'itens_resumo',
-    label: 'Itens',
-    field: (row: Emprestimo) => row.itens_resumo || 'Nao informado',
-    align: 'left',
-    sortable: true,
-  },
-  {
-    name: 'quantidade_total',
-    label: 'Qtd.',
-    field: 'quantidade_total',
-    align: 'center',
     sortable: true,
   },
   {
@@ -80,7 +79,7 @@ const columns: QTableProps['columns'] = [
   },
   {
     name: 'acoes',
-    label: 'Acoes',
+    label: 'Ações',
     field: (row: Emprestimo) => row.id,
     align: 'right',
   },
@@ -216,7 +215,7 @@ onMounted(() => {
     <section class="module-shell">
       <header class="module-header">
         <div class="module-header-copy">
-          <h1>Emprestimos cadastrados</h1>
+          <h1>Empréstimos cadastrados</h1>
           <p class="module-total">(Total: {{ emprestimos.length }})</p>
         </div>
 
@@ -232,8 +231,22 @@ onMounted(() => {
         </label>
 
         <div class="header-actions">
-          <button type="button" class="ghost-button" @click="goToCreate">Novo</button>
-          <button type="button" class="module-exit" @click="goToDashboard">Sair</button>
+          <q-btn
+            no-caps
+            unelevated
+            icon="add"
+            label="Novo"
+            class="header-action-primary"
+            @click="goToCreate"
+          />
+          <q-btn
+            round
+            unelevated
+            icon="logout"
+            class="module-exit module-exit-icon"
+            aria-label="Sair do sistema"
+            @click="goToDashboard"
+          />
         </div>
       </header>
 
@@ -260,18 +273,6 @@ onMounted(() => {
             </q-td>
           </template>
 
-          <template #body-cell-itens_resumo="props">
-            <q-td :props="props" class="items-cell">
-              {{ props.row.itens_resumo || 'Nao informado' }}
-            </q-td>
-          </template>
-
-          <template #body-cell-quantidade_total="props">
-            <q-td :props="props" class="total-cell">
-              {{ props.row.quantidade_total }}
-            </q-td>
-          </template>
-
           <template #body-cell-status="props">
             <q-td :props="props">
               <span class="status-chip" :class="`status-${props.row.status}`">
@@ -294,6 +295,7 @@ onMounted(() => {
                   round
                   dense
                   icon="edit"
+                  class="action-icon action-icon-edit"
                   aria-label="Editar emprestimo"
                   title="Editar emprestimo"
                   @click="editEmprestimo(props.row.id)"
@@ -304,6 +306,7 @@ onMounted(() => {
                   round
                   dense
                   icon="keyboard_return"
+                  class="action-icon action-icon-return"
                   aria-label="Registrar devolucao"
                   title="Registrar devolucao"
                   @click="requestReturn(props.row)"
@@ -314,6 +317,7 @@ onMounted(() => {
                   dense
                   icon="delete"
                   color="negative"
+                  class="action-icon action-icon-delete"
                   aria-label="Excluir emprestimo"
                   title="Excluir emprestimo"
                   @click="requestDelete(props.row)"
@@ -328,8 +332,6 @@ onMounted(() => {
                 <div class="mobile-copy">
                   <h2>{{ props.row.membro_nome || 'Nao informado' }}</h2>
                   <p><strong>Status:</strong> {{ getStatusLabel(props.row.status) }}</p>
-                  <p><strong>Itens:</strong> {{ props.row.itens_resumo || 'Nao informado' }}</p>
-                  <p><strong>Quantidade:</strong> {{ props.row.quantidade_total }}</p>
                   <p><strong>Devolver em:</strong> {{ formatDateTime(props.row.data_prevista_devolucao) }}</p>
                 </div>
 
@@ -339,6 +341,7 @@ onMounted(() => {
                     round
                     dense
                     icon="edit"
+                    class="action-icon action-icon-edit"
                     aria-label="Editar emprestimo"
                     title="Editar emprestimo"
                     @click="editEmprestimo(props.row.id)"
@@ -349,6 +352,7 @@ onMounted(() => {
                     round
                     dense
                     icon="keyboard_return"
+                    class="action-icon action-icon-return"
                     aria-label="Registrar devolucao"
                     title="Registrar devolucao"
                     @click="requestReturn(props.row)"
@@ -359,6 +363,7 @@ onMounted(() => {
                     dense
                     icon="delete"
                     color="negative"
+                    class="action-icon action-icon-delete"
                     aria-label="Excluir emprestimo"
                     title="Excluir emprestimo"
                     @click="requestDelete(props.row)"
@@ -484,11 +489,14 @@ onMounted(() => {
 }
 
 .module-header {
+  width: min(100%, 560px);
+  box-sizing: border-box;
+  justify-self: center;
   padding: clamp(18px, 2.8vw, 28px);
   display: grid;
-  grid-template-columns: auto minmax(280px, 1fr) auto;
-  gap: 20px;
-  align-items: center;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  align-items: stretch;
 }
 
 .module-header-copy {
@@ -568,7 +576,29 @@ onMounted(() => {
   color: #172033;
 }
 
+.header-action-primary {
+  min-height: 44px;
+  border-radius: 999px;
+  padding: 0 18px;
+  background: linear-gradient(135deg, #008a7c 0%, #0f766e 100%);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 10px 22px rgba(15, 35, 33, 0.08);
+}
+
+.module-exit-icon {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+  color: #0f766e;
+  border-color: rgba(15, 118, 110, 0.18);
+  box-shadow: 0 6px 18px rgba(15, 35, 33, 0.06);
+}
+
 .panel-card {
+  width: min(100%, 560px);
+  box-sizing: border-box;
+  justify-self: center;
   padding: 20px;
   display: grid;
   gap: 14px;
@@ -599,7 +629,7 @@ onMounted(() => {
 }
 
 .loans-table :deep(.q-table th) {
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -608,7 +638,8 @@ onMounted(() => {
 
 .loans-table :deep(.q-table th),
 .loans-table :deep(.q-table td) {
-  padding: 14px 16px;
+  padding: 10px 12px;
+  font-size: 0.8rem;
 }
 
 .loans-table :deep(.q-table tbody tr:nth-child(even)) {
@@ -616,17 +647,11 @@ onMounted(() => {
 }
 
 .member-cell,
-.items-cell,
 .date-cell {
   max-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.total-cell {
-  font-weight: 800;
-  color: #172033;
 }
 
 .status-chip {
@@ -663,6 +688,31 @@ onMounted(() => {
   justify-content: flex-end;
 }
 
+:deep(.action-icon) {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: 12px;
+}
+
+:deep(.action-icon .q-icon) {
+  font-size: 1.1rem;
+}
+
+:deep(.action-icon-edit) {
+  color: #0f766e;
+  background: rgba(0, 138, 124, 0.1);
+}
+
+:deep(.action-icon-return) {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.1);
+}
+
+:deep(.action-icon-delete) {
+  background: rgba(239, 68, 68, 0.1);
+}
+
 .mobile-grid-item {
   width: 100%;
   padding: 2px;
@@ -680,6 +730,12 @@ onMounted(() => {
 .mobile-copy {
   display: grid;
   gap: 6px;
+}
+
+.mobile-copy h2 {
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .mobile-copy strong {
@@ -743,12 +799,9 @@ onMounted(() => {
 }
 
 @media (max-width: 920px) {
-  .module-header {
-    grid-template-columns: 1fr;
-  }
-
   .header-actions {
-    justify-content: flex-start;
+    justify-content: flex-end;
+    width: 100%;
   }
 }
 
@@ -762,9 +815,22 @@ onMounted(() => {
     width: 100%;
   }
 
+  .module-exit-icon {
+    width: 44px;
+  }
+
+  .header-action-primary {
+    flex: 1 1 auto;
+  }
+
   .modal-actions,
   .mobile-actions {
     justify-content: flex-start;
+  }
+
+  .mobile-actions {
+    flex-wrap: wrap;
+    gap: 10px;
   }
 
   .status-chip {

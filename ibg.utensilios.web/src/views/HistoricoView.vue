@@ -239,31 +239,30 @@ onMounted(() => {
           <p v-if="totalHistoricos !== null" class="module-total">Total cadastrado: {{ totalHistoricos }}</p>
         </div>
 
-        <button type="button" class="module-exit" @click="goToDashboard">Sair</button>
+        <div class="panel-exit-row">
+          <q-btn
+            round
+            unelevated
+            icon="logout"
+            class="module-exit module-exit-icon"
+            aria-label="Sair do sistema"
+            @click="goToDashboard"
+          />
+        </div>
       </header>
 
       <section class="panel-card">
-        <div class="panel-heading">
-          <div>
-            <p class="panel-kicker">{{ editingId ? 'Edicao' : 'Novo registro' }}</p>
-            <h2>{{ editingId ? 'Editar historico' : 'Novo historico' }}</h2>
-            <p v-if="editingId" class="panel-support">
-              Revise item, tipo de evento e descricao do registro selecionado.
-            </p>
-          </div>
-
-          <button v-if="editingId" type="button" class="ghost-button heading-action" @click="cancelEditing">
-            Cancelar edicao
-          </button>
+        <div v-if="editingId" class="panel-heading panel-heading-edit">
+          <h2 class="edit-label">Editar historico</h2>
         </div>
 
         <p v-if="loading" class="status-copy">Preparando formulario...</p>
 
         <form v-else class="form-grid" @submit.prevent="handleSubmit">
-          <label class="field field-span-2">
+          <label class="field field-span-2 field-shell-input">
             <span>Item</span>
             <select v-model.number="form.item_id">
-              <option :value="null">Selecione</option>
+              <option :value="null"></option>
               <option v-for="item in itens" :key="item.id" :value="item.id">
                 {{ item.descricao }}
               </option>
@@ -273,7 +272,7 @@ onMounted(() => {
             </small>
           </label>
 
-          <label class="field field-span-2">
+          <label class="field field-span-2 field-shell-input">
             <span>Tipo de evento</span>
             <select v-model="form.tipo_evento">
               <option value="cadastro">Cadastro</option>
@@ -285,8 +284,8 @@ onMounted(() => {
             <small class="field-help">{{ getTipoLabel(form.tipo_evento) }}</small>
           </label>
 
-          <label class="field field-span-2">
-            <span>Descricao</span>
+          <label class="field field-span-2 field-shell-input">
+            <span>Descrição</span>
             <textarea v-model="form.descricao" rows="4" />
             <small class="field-help">
               {{ descricaoLength }}/{{ HISTORICO_DESCRICAO_MAX_LENGTH }}
@@ -296,8 +295,8 @@ onMounted(() => {
             </small>
           </label>
 
-          <label class="field field-span-2">
-            <span>Usuario responsavel</span>
+          <label class="field field-span-2 field-shell-input">
+            <span>Usuário responsável</span>
             <input v-model="form.usuario_responsavel" :maxlength="RESPONSAVEL_MAX_LENGTH" />
             <small class="field-help">
               {{ usuarioLength }}/{{ RESPONSAVEL_MAX_LENGTH }}
@@ -317,12 +316,23 @@ onMounted(() => {
             <p v-if="errorMessage" class="feedback error">{{ errorMessage }}</p>
           </div>
 
-          <button type="submit" class="primary-button" :disabled="submitting || !isFormValid">
-            {{ submitLabel }}
-          </button>
+          <div class="button-row">
+            <button type="submit" class="primary-button action-button" :disabled="submitting || !isFormValid">
+              {{ submitLabel }}
+            </button>
 
-          <button type="button" class="ghost-button secondary-action" @click="goToList">
-            Listar historico
+            <button type="button" class="ghost-button action-button" @click="goToList">
+              Listar historico
+            </button>
+          </div>
+
+          <button
+            v-if="editingId"
+            type="button"
+            class="ghost-button secondary-action"
+            @click="cancelEditing"
+          >
+            Cancelar edicao
           </button>
 
           <button
@@ -335,6 +345,7 @@ onMounted(() => {
             {{ deleting ? 'Excluindo...' : 'Excluir historico' }}
           </button>
         </form>
+
       </section>
     </section>
 
@@ -390,10 +401,11 @@ onMounted(() => {
 }
 
 .module-shell {
-  width: min(100%, 900px);
+  width: min(100%, 480px);
   margin: 0 auto;
   display: grid;
-  gap: 18px;
+  gap: 12px;
+  box-sizing: border-box;
 }
 
 .module-header,
@@ -401,21 +413,21 @@ onMounted(() => {
 .modal-card {
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(219, 228, 232, 0.95);
-  border-radius: 24px;
-  box-shadow: 0 14px 30px rgba(15, 35, 33, 0.07);
+  border-radius: 20px;
+  box-shadow: 0 10px 22px rgba(15, 35, 33, 0.07);
 }
 
 .module-header {
-  padding: clamp(18px, 2.8vw, 28px);
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  align-items: flex-start;
+  position: relative;
+  min-height: 60px;
+  padding: 8px 12px;
+  display: block;
 }
 
 .module-header-copy {
   display: grid;
-  gap: 8px;
+  gap: 2px;
+  padding-right: 56px;
 }
 
 .module-header h1,
@@ -426,12 +438,11 @@ onMounted(() => {
 }
 
 .module-header h1 {
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-size: clamp(1.45rem, 2.8vw, 1.8rem);
 }
 
 .module-total,
 .status-copy,
-.panel-support,
 .modal-copy p {
   margin: 0;
   color: #536579;
@@ -460,6 +471,18 @@ onMounted(() => {
   color: #172033;
 }
 
+.module-exit-icon {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f766e;
+  border-color: rgba(15, 118, 110, 0.18);
+  box-shadow: 0 6px 18px rgba(15, 35, 33, 0.06);
+}
+
 .primary-button {
   border: 0;
   background: linear-gradient(135deg, #008a7c 0%, #0f766e 100%);
@@ -478,40 +501,40 @@ onMounted(() => {
 }
 
 .panel-card {
-  padding: 20px;
+  width: 100%;
+  padding: 14px;
   display: grid;
-  gap: 18px;
+  gap: 14px;
+  box-sizing: border-box;
 }
 
 .panel-heading {
   display: flex;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   align-items: flex-start;
 }
 
-.panel-kicker {
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  font-size: 0.74rem;
-  font-weight: 800;
-  color: #0f766e;
+.panel-heading-edit {
+  justify-content: flex-end;
 }
 
-.heading-action {
-  white-space: nowrap;
+.edit-label {
+  font-size: 0.55rem;
+  font-weight: 800;
+  text-align: right;
 }
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: 1fr;
+  gap: 12px;
 }
 
 .field {
   display: grid;
   gap: 8px;
+  min-width: 0;
 }
 
 .field span {
@@ -522,6 +545,9 @@ onMounted(() => {
 .field input,
 .field select,
 .field textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   min-height: 46px;
   border-radius: 14px;
   border: 1px solid #d6e0e4;
@@ -531,17 +557,49 @@ onMounted(() => {
 }
 
 .field textarea {
-  min-height: 120px;
+  min-height: 92px;
   padding-top: 12px;
   resize: vertical;
 }
 
+.field-shell-input {
+  gap: 4px;
+  padding: 10px 14px 12px;
+  border: 1px solid #d6e0e4;
+  border-radius: 14px;
+  background: #f7fbfb;
+}
+
+.field-shell-input > span {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #536579;
+}
+
+.field-shell-input input,
+.field-shell-input select,
+.field-shell-input textarea {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
 .field-span-2,
 .feedback-group,
-.primary-button,
 .secondary-action,
 .summary-inline {
   grid-column: 1 / -1;
+}
+
+.button-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.action-button {
+  width: 100%;
 }
 
 .field-help {
@@ -592,6 +650,15 @@ onMounted(() => {
   background: #fef2f2;
   color: #b91c1c;
   border: 1px solid #fecaca;
+}
+
+.panel-exit-row {
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
 }
 
 .modal-backdrop {
@@ -653,14 +720,20 @@ onMounted(() => {
     flex-direction: column;
   }
 
-  .module-exit,
-  .primary-button,
   .ghost-button,
   .danger-button {
     width: 100%;
   }
 
+  .module-exit-icon {
+    width: 44px;
+  }
+
   .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .button-row {
     grid-template-columns: 1fr;
   }
 
