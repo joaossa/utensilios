@@ -163,7 +163,7 @@ Aplicacao correta ao `Utensilios`:
 
 Modelo minimo:
 ```dotenv
-VITE_API_BASE_URL=https://api.seu-dominio.com.br
+VITE_API_BASE_URL=https://api.ibgutensilios.com.br
 ```
 
 Regra de `base`:
@@ -191,7 +191,7 @@ Modelo minimo de ambiente:
 PORT=3001
 DATABASE_URL=postgresql://usuario:senha@host:5432/utensilios?schema=public
 JWT_SECRET=definir-valor-forte-no-painel
-CORS_ORIGINS=https://seu-dominio.com.br,https://www.seu-dominio.com.br
+CORS_ORIGINS=https://ibgutensilios.com.br,https://www.ibgutensilios.com.br
 SEED_ADMIN_EMAIL=admin@utensilios.local
 SEED_ADMIN_PASSWORD=definir-so-se-houver-seed-controlado
 SEED_INCLUDE_SAMPLE_DATA=false
@@ -247,7 +247,8 @@ Seguranca:
 11. Lacunas reais antes do primeiro deploy
 
 - falta criar ou congelar `ibg.utensilios.web\.env.production`
-- falta definir dominio do frontend e subdominio da API
+- dominio do frontend confirmado: `https://ibgutensilios.com.br`
+- subdominio da API confirmado: `https://api.ibgutensilios.com.br`
 - falta decidir como as migrations vao rodar no banco de producao
 - falta executar o primeiro deploy real do `Utensilios` para saber se o runtime simples em `dist/src/server.js` sobe sem workaround
 - `docs\Postgres.txt` contem credencial em texto puro e merece saneamento controlado

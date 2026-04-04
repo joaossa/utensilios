@@ -595,6 +595,99 @@ Status da parada: segura para retomada
   - `npm run build` em `ibg.utensilios.web`
 - nesta rodada de correcao do modo mobile de `Empréstimos/lista`, o nome do membro no card foi reduzido para escala proporcional e os botoes de editar, devolver e excluir passaram a usar o mesmo contraste visual dos demais modulos:
   - `npm run build` em `ibg.utensilios.web`
+- nesta rodada operacional de banco remoto, as migrations do projeto foram aplicadas com sucesso no Neon:
+  - `npx knex migrate:currentVersion --knexfile knexfile.js` retornou `none` antes da execucao
+  - `npm run db:migrate` em `ibg.utensilios.api` aplicou 7 migrations no banco remoto
+  - `npx knex migrate:currentVersion --knexfile knexfile.js` retornou `202604020001` apos a execucao
+  - a tabela `knex_migrations` no Neon passou a registrar:
+    - `202603300001_init_utensilios_schema.js`
+    - `202603310001_link_auth_to_membros.js`
+    - `202603310002_item_lookup_tables.js`
+    - `202604010001_item_imagens_binario.js`
+    - `202604010002_item_estoque_quantidades.js`
+    - `202604010003_add_utensilios_cozinha_categoria.js`
+    - `202604020001_emprestimos_cabecalho_itens.js`
+- nesta rodada operacional de seeds no Neon, o banco remoto recebeu com sucesso os dados iniciais do projeto:
+  - `npm run db:seed` em `ibg.utensilios.api` foi executado com `SEED_INCLUDE_SAMPLE_DATA=false`
+  - o seed garantiu `4` estados em `item_estados`
+  - o seed garantiu `7` categorias em `item_categorias`
+  - o membro administrador inicial foi criado em `membros` com:
+    - `email: admin@utensilios.local`
+    - `role: ADMIN`
+    - `ativo: true`
+- nesta rodada de preparacao para Hostinger, o script `docs/hostinger/build_hostinger_artifacts.ps1` foi revisado e endurecido:
+  - passou a limpar `ibg.utensilios.api/dist` e `ibg.utensilios.web/dist` antes da compilacao
+  - `powershell -ExecutionPolicy Bypass -File docs/hostinger/build_hostinger_artifacts.ps1` executou com sucesso
+  - artefatos confirmados:
+    - `docs/hostinger/ibg.utensilios.web-public_html.zip`
+    - `docs/hostinger/ibg.utensilios.api-hostinger.zip`
+  - hashes gerados nesta rodada:
+    - `web sha256: 70C62F76587F638EB0B31DBDD945933C975138836E340FFCE2B78A09EAE640EC`
+    - `api sha256: 39A695F8DF8987B0840D7CB129082F30F7DD6618824F46BF810B626FF4CE7C6C`
+  - o pacote web ficou com `index.html`, `.htaccess` e `assets`
+  - o pacote da API ficou com `dist/src/server.js`, `db/migrations`, `package.json`, `package-lock.json`, `knexfile.js` e `.env.example`, sem `node_modules` e sem `.env` real
+  - pendencia operacional antes do deploy real: criar/configurar `VITE_API_BASE_URL` de producao, pois `ibg.utensilios.web/src/services/api.ts` ainda usa fallback para `http://localhost:3001`
+- nesta rodada de congelamento dos dominios reais do deploy:
+  - frontend confirmado em `https://ibgutensilios.com.br`
+  - API confirmada em `https://api.ibgutensilios.com.br`
+  - foi criado `ibg.utensilios.web/.env.production` com `VITE_API_BASE_URL=https://api.ibgutensilios.com.br`
+  - `docs/configuracoes.txt` foi atualizado para refletir os dominios reais de frontend e CORS
+  - os artefatos foram regenerados com sucesso apos esse ajuste:
+    - `web sha256: C6FA485DF318E52F750111CEE0555C8430922047C63F4852108FC4BDB2D81D8C`
+    - `api sha256: 5FA02A058267FFF7FB1D5389EF04B8EAF9144BF3CC1B6ACA813AE3DB318329BB`
+  - o bundle final do frontend passou a embutir `https://api.ibgutensilios.com.br` no lugar do fallback local
+- nesta rodada de compatibilidade de deploy da API para Hostinger, a baseline foi ajustada em linha com o historico vencedor do `cecom_v1`:
+  - criado `ibg.utensilios.api/index.js` na raiz para bootstrap da API
+  - `ibg.utensilios.api/package.json` passou a usar:
+    - `main: index.js`
+    - `start: node index.js`
+  - `docs/hostinger/build_hostinger_artifacts.ps1` passou a incluir `index.js` no ZIP da API
+  - validacoes executadas com sucesso:
+    - `npm run build` em `ibg.utensilios.api`
+    - `powershell -ExecutionPolicy Bypass -File docs/hostinger/build_hostinger_artifacts.ps1`
+  - novos hashes dos artefatos:
+    - `web sha256: D63AAB8D202F049150A7232151C006593ECB6C79E0BCDCC0538F8E142348DF0C`
+    - `api sha256: AEFC0ABCBEC139FB8B3B4CB5013F4FC6682A3E2F36BDBF631B3942752C2B1761`
+- nesta rodada de resposta ao erro `TS5058` da Hostinger, a API recebeu a mesma linha de sobrevivencia operacional usada no `cecom_v1`:
+  - criado `ibg.utensilios.api/hostinger-stage.js` para gerar `hostinger-stages.log`
+  - `ibg.utensilios.api/index.js` passou a gerar `startup.log` com rastreio do bootstrap
+  - `ibg.utensilios.api/package.json` passou a usar:
+    - `postinstall: node hostinger-stage.js postinstall`
+    - `build: node hostinger-stage.js build`
+    - `build:ts: tsc -p tsconfig.json`
+    - `build:hostinger: npm run build`
+    - `postbuild: node hostinger-stage.js postbuild`
+    - `prestart: node hostinger-stage.js prestart`
+    - `start: node hostinger-stage.js start && node index.js`
+  - `docs/hostinger/build_hostinger_artifacts.ps1` passou a compilar localmente com `npm run build:ts`
+  - o ZIP da API passou a incluir `hostinger-stage.js` e `tsconfig.json`
+  - validacoes executadas com sucesso:
+    - `npm run build:ts` em `ibg.utensilios.api`
+    - `npm run build` em `ibg.utensilios.api`
+    - `powershell -ExecutionPolicy Bypass -File docs/hostinger/build_hostinger_artifacts.ps1`
+  - hashes atuais dos artefatos:
+    - `web sha256: 49EA425261EC2D74265EC8EC20F55166979D5F3823BDD781B5481DA89D1F1D1C`
+    - `api sha256: 61ACB923899F8782652BB84E4A457A14CBFB5DC4762A064674A3C1BC002CA07C`
+- nesta rodada documental de deploy, foi criado um guia simples e direto de publicacao em Hostinger:
+  - arquivo: `docs/deploy/GUIA_PUBLICACAO_HOSTINGER.md`
+  - escopo coberto:
+    - arquitetura frontend + API
+    - forma de build local
+    - exigencias praticas da Hostinger
+    - motivo tecnico da estrategia `index.js` + `build` controlado
+    - variaveis de ambiente
+    - logs `hostinger-stages.log` e `startup.log`
+    - checklist de publicacao e diagnostico
+  - o arquivo tambem foi incluido em `docs/SESSAO_UTENSILIOS`
+- nesta rodada complementar de documentacao operacional, foi criada uma versao enxuta para uso na hora do deploy:
+  - arquivo: `docs/deploy/COLA_RAPIDA_HOSTINGER.md`
+  - foco:
+    - sequencia curta de publicacao
+    - variaveis da API
+    - healthcheck
+    - leitura de `hostinger-stages.log` e `startup.log`
+    - regra de ouro para nao testar login antes da API responder
+  - o arquivo tambem foi incluido em `docs/SESSAO_UTENSILIOS`
 
 ## Observacoes de continuidade
 

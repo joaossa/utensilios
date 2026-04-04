@@ -5,4 +5,21 @@ tWdy8ilnp001
 
 ## Novo Banco para Utensílios
 
+## IBG Utensílios
 postgresql://neondb_owner:npg_I3FnsEabAVC5@ep-jolly-star-anfd30bg-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+
+JWT_SECRET=dl22Es9oW7dRP+Us5aSTtqhqv5jpPG/F4UG8I6D6aXKl/Zm6WZtVI1ByLBnQrEWcSMmfw8SJJQOjzkk6g9yARA==
+
+CORS_ORIGINS
+https://ibgutensilios.com.br,https://www.ibgutensilios.com.br
+
+
+WEB_BASE_URL
+https://ibgutensilios.com.br
+
+
+RECOVERY_PASSWORD_URL
+https://ibgutensilios.com.br/recuperar-senha?token={token}
+
+
+/health

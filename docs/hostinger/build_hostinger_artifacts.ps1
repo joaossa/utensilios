@@ -41,6 +41,8 @@ $apiStage = Join-Path $tmpDir "api_node"
 $webZip = Join-Path $hostingerDir "ibg.utensilios.web-public_html.zip"
 $apiZip = Join-Path $hostingerDir "ibg.utensilios.api-hostinger.zip"
 $htaccessSource = Join-Path $hostingerDir ".htaccess"
+$webDistDir = Join-Path $webDir "dist"
+$apiDistDir = Join-Path $apiDir "dist"
 
 if (-not (Test-Path $htaccessSource)) {
   throw "Arquivo obrigatorio nao encontrado: $htaccessSource"
@@ -63,15 +65,23 @@ if (Test-Path $apiZip) {
 }
 
 Write-Step "Compilando a API"
+if (Test-Path $apiDistDir) {
+  Remove-PathWithRetry -Path $apiDistDir
+}
+
 Push-Location $apiDir
 try {
-  npm run build | Out-Host
+  npm run build:ts | Out-Host
 }
 finally {
   Pop-Location
 }
 
 Write-Step "Compilando a web"
+if (Test-Path $webDistDir) {
+  Remove-PathWithRetry -Path $webDistDir
+}
+
 Push-Location $webDir
 try {
   npm run build | Out-Host
@@ -88,11 +98,14 @@ Copy-Item $htaccessSource -Destination (Join-Path $webStage ".htaccess") -Force
 
 Write-Step "Montando pacote da API para app Node"
 $apiItems = @(
+  "hostinger-stage.js",
+  "index.js",
   "src",
   "db",
   "dist",
   "package.json",
   "package-lock.json",
+  "tsconfig.json",
   "knexfile.js",
   ".env.example"
 )
