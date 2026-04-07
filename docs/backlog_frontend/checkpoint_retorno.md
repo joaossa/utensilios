@@ -1,6 +1,6 @@
 # Checkpoint de Retorno Frontend Utensilios
 
-Atualizado em: 2026-04-06
+Atualizado em: 2026-04-07
 Status da parada: segura para retomada
 
 ## Parada imediata para reinicio
@@ -740,22 +740,24 @@ Status da parada: segura para retomada
   - validar manualmente o fluxo ponta a ponta dos quatro modulos em `localhost`
   - endurecer regras, UX e consistencia dos CRUDs ja criados
 - frente de responsividade:
-  - revisar o plano em [responsividade_mobile_utensilios_plano.md](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\backlog_frontend\responsividade_mobile_utensilios_plano.md)
-  - decidir se a implementacao vai comecar pela fundacao compartilhada ou por um piloto em `MembrosListView.vue`
+  - seguir para a Fase 3 do plano em [responsividade_mobile_utensilios_plano.md](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\backlog_frontend\responsividade_mobile_utensilios_plano.md)
+  - padronizar cabecalhos e blocos de formulario em `Itens`, `Membros`, `Historico` e `ItemImagens`
+  - deixar `EmprestimosView.vue` por ultimo, conforme o risco ja registrado no plano
 - frente tecnica paralela:
-  - abrir `DEPLOY-001` para transformar a baseline documental revalidada em 2026-04-06 na configuracao real de producao
+  - abrir `DEPLOY-001` para transformar a baseline documental revalidada em 2026-04-07 na configuracao real de producao
   - alinhar `validarDev.ps1` com `npm run build:ts` para a API voltar a ter validacao de compilacao fresca
 - ordem recomendada:
-  - 1. revisar e aprovar o plano de responsividade mobile
-  - 2. decidir se o piloto sera `MembrosListView.vue`
-  - 3. validar `Itens`, `Membros`, `Emprestimos` e `Historico` com fluxo real
-  - 4. revisar mensagens de erro, protecao de sessao e tratamento de `401`
-  - 5. manter `ibg.utensilios.web/.env.production` como baseline oficial e revisar somente se o dominio mudar
-  - 6. decidir e ensaiar a estrategia de migrations no banco de producao
-  - 7. executar a primeira publicacao controlada da API
-  - 8. validar `/health`, logs reais e CORS
-  - 9. publicar o frontend
-  - 10. so depois congelar a estrategia vencedora do primeiro deploy
+  - 1. validar `Itens`, `Membros`, `Emprestimos` e `Historico` com fluxo real apos a nova fundacao compartilhada das listas
+  - 2. executar `RSP-0301`
+  - 3. executar `RSP-0302`
+  - 4. executar `RSP-0303`
+  - 5. revisar mensagens de erro, protecao de sessao e tratamento de `401`
+  - 6. manter `ibg.utensilios.web/.env.production` como baseline oficial e revisar somente se o dominio mudar
+  - 7. decidir e ensaiar a estrategia de migrations no banco de producao
+  - 8. executar a primeira publicacao controlada da API
+  - 9. validar `/health`, logs reais e CORS
+  - 10. publicar o frontend
+  - 11. so depois congelar a estrategia vencedora do primeiro deploy
 
 ## Como retomar com seguranca
 
@@ -877,6 +879,46 @@ Status da parada: segura para retomada
     - regra de ouro para nao testar login antes da API responder
   - o arquivo tambem foi incluido em `docs/SESSAO_UTENSILIOS`
 
+## Atualizacao desta rodada - 2026-04-07
+
+- `RSP-0101`:
+  - antes de qualquer alteracao nova foi criado backup integral do projeto em:
+    - `C:\temp\Joao\Utensilios_backup_20260407_114527`
+  - a conferencia por contagem confirmou a mesma quantidade de arquivos e diretorios da origem
+- `RSP-0102`:
+  - o estado anterior do repositiorio foi preservado em Git antes da nova frente de frontend:
+    - commit: `02f44c5 chore: checkpoint before mobile responsiveness work`
+    - push: `origin/master`
+- `RSP-0103`:
+  - foi criada uma fundacao compartilhada de responsividade para listas CRUD em:
+    - [CrudListShell.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\components\crud\CrudListShell.vue)
+    - [MobileCrudCard.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\components\crud\MobileCrudCard.vue)
+    - [CrudIconDialog.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\components\crud\CrudIconDialog.vue)
+    - [useResponsiveCrudList.ts](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\composables\useResponsiveCrudList.ts)
+  - essa base centraliza:
+    - shell de pagina de lista
+    - card mobile dedicado
+    - dialogo iconico de confirmacao
+    - regra unica para `dense/grid` das `QTable`
+- `RSP-0201`:
+  - `Membros/lista` passou a usar a nova fundacao compartilhada em:
+    - [MembrosListView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\MembrosListView.vue)
+  - o card mobile ficou mais legivel e com metadados de `tipo` e `status`
+- `RSP-0202`:
+  - `Itens/lista` passou a usar a nova fundacao compartilhada em:
+    - [ItensListView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\ItensListView.vue)
+  - o card mobile passou a expor `estado`, `categoria` e `total` sem depender do aspecto de tabela reduzida
+- `RSP-0203`:
+  - `Historico/lista` passou a usar a nova fundacao compartilhada em:
+    - [HistoricoListView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\HistoricoListView.vue)
+  - a listagem herdou o mesmo shell responsivo e o mesmo padrao de acoes mobile
+- `RSP-0204`:
+  - `Emprestimos/lista` passou a usar a nova fundacao compartilhada em:
+    - [EmprestimosListView.vue](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.web\src\views\EmprestimosListView.vue)
+  - o card mobile passou a mostrar status, devolver em e resumo dos itens no mesmo bloco
+- validacao desta rodada:
+  - `npm run build` em `ibg.utensilios.web`
+
 ## Observacoes de continuidade
 
 - o principal risco estrutural anterior era a ausencia de backend real, e isso deixou de ser o bloqueio principal
@@ -884,5 +926,5 @@ Status da parada: segura para retomada
 - o banco local esta pronto para evolucao funcional sem reabrir a base de autenticacao
 - `validarDev.ps1` e `docs/hostinger/build_hostinger_artifacts.ps1` devem rodar em sequencia, nunca em paralelo
 - a proxima convergencia natural entre produto, frontend e backend esta em:
-  - consolidar os CRUDs
-  - fechar a baseline de deploy para Hostinger
+  - padronizar os formularios internos pela Fase 3 do plano de responsividade
+  - alinhar `validarDev.ps1` com `npm run build:ts` se a frente de deploy voltar a abrir

@@ -1,5 +1,5 @@
 IBG - Utensilios - baseline consolidada de configuracoes e publicacao segura
-Consolidado em: 2026-04-06
+Consolidado em: 2026-04-07
 Status: valido para retomada nesta instancia
 
 1. Identidade assumida neste contexto
@@ -9,9 +9,9 @@ Perfis lidos em conjunto:
 - `F:\PESSOAL\Joao\Documentos\Perfil_Escrita\PERFIL DE ANALISTA DE SISTEMAS.txt`
 
 Quem sou neste contexto:
-- analista de sistemas full-stack com foco em Vue, Vite, Quasar, TypeScript, Node.js, PostgreSQL, scripts operacionais, documentacao e deploy seguro
-- responsavel por cruzar codigo real, historico documental, checkpoint de retomada e documentacao oficial atual
-- guardiao da baseline operacional para evitar improviso no deploy
+- analista de sistemas full-stack com foco em `Vue`, `Vite`, `Quasar`, `TypeScript`, `Node.js`, `PostgreSQL`, scripts operacionais, documentacao e deploy seguro
+- responsavel por correlacionar codigo real, historico documental, checkpoint de retomada, artefatos locais e documentacao oficial atual
+- guardiao da baseline operacional para evitar improviso no deploy e regressao no frontend mobile
 
 Onde posso atuar:
 - `F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios` e subpastas
@@ -24,7 +24,7 @@ Restricao operacional desta instancia:
 
 2. Fontes correlacionadas nesta rodada
 
-Leitura feita na ordem pedida:
+Leitura refeita na ordem pedida:
 1. `docs\aprendizado_frontend`
 2. `docs\backlog_frontend`
 3. `docs\hostinger`
@@ -37,8 +37,16 @@ Arquivos reais do projeto conferidos para validar a documentacao:
 - `ibg.utensilios.web\package.json`
 - `ibg.utensilios.web\vite.config.ts`
 - `ibg.utensilios.web\.env.production`
-- `ibg.utensilios.web\src\router\index.ts`
+- `ibg.utensilios.web\src\main.ts`
 - `ibg.utensilios.web\src\services\api.ts`
+- `ibg.utensilios.web\src\views\MembrosListView.vue`
+- `ibg.utensilios.web\src\views\ItensListView.vue`
+- `ibg.utensilios.web\src\views\EmprestimosListView.vue`
+- `ibg.utensilios.web\src\views\HistoricoListView.vue`
+- `ibg.utensilios.web\src\components\crud\CrudListShell.vue`
+- `ibg.utensilios.web\src\components\crud\MobileCrudCard.vue`
+- `ibg.utensilios.web\src\components\crud\CrudIconDialog.vue`
+- `ibg.utensilios.web\src\composables\useResponsiveCrudList.ts`
 - `ibg.utensilios.api\package.json`
 - `ibg.utensilios.api\index.js`
 - `ibg.utensilios.api\hostinger-stage.js`
@@ -50,45 +58,38 @@ Arquivos reais do projeto conferidos para validar a documentacao:
 - `ibg.utensilios.api\db\scripts\ensure-public-schema.js`
 - `docs\hostinger\build_hostinger_artifacts.ps1`
 - `docs\hostinger\.htaccess`
+- `docs\hostinger\ibg.utensilios.web-public_html\index.html`
 
-Pesquisas oficiais confirmadas na web em 2026-04-06:
-- Hostinger Node.js hub:
-  - `https://www.hostinger.com/support/hpanel/node-js/`
-- Hostinger Node.js Web App setup:
+Pesquisas oficiais confirmadas na web em 2026-04-07:
+- Hostinger Node.js Web Apps:
   - `https://www.hostinger.com/support/how-to-deploy-a-nodejs-website-in-hostinger/`
-- Hostinger Node.js migration:
-  - `https://www.hostinger.com/support/how-to-migrate-a-node-js-application-to-hostinger/`
-- Hostinger environment variables during deploy:
+- Hostinger variaveis de ambiente:
   - `https://www.hostinger.com/support/how-to-add-environment-variables-during-node-js-application-deployment/`
-- Hostinger environment variables after deploy:
   - `https://www.hostinger.com/support/how-to-edit-or-add-environment-variables-after-deployment/`
 - Hostinger redeploy:
   - `https://www.hostinger.com/support/how-to-redeploy-a-node-js-application/`
-- Hostinger custom domain:
+- Hostinger dominio customizado:
   - `https://www.hostinger.com/support/how-to-connect-a-custom-domain-to-a-node-js-application/`
-- Hostinger external PostgreSQL example:
+- Hostinger troubleshooting da aplicacao Node:
+  - `https://www.hostinger.com/support/my-node-js-application-displays-a-default-page/`
+- Hostinger banco externo em app Node:
   - `https://www.hostinger.com/support/connecting-a-supabase-database-to-a-hostinger-node-js-application/`
-- Hostinger managed MySQL note:
-  - `https://www.hostinger.com/support/connecting-a-hostinger-mysql-database-to-a-node-js-application/`
-- Hostinger Node.js version selection:
-  - `https://www.hostinger.com/support/how-to-select-the-node-js-version-for-your-application/`
-- Vite env and mode:
+- Vite env e mode:
   - `https://vite.dev/guide/env-and-mode`
 - Vite static deploy:
   - `https://vite.dev/guide/static-deploy.html`
 
-Observacao importante:
-- a linha oficial mais util hoje para este projeto e a de `Node.js Web Apps` da Hostinger
-- a documentacao oficial atual da Hostinger mostra dois cenarios validos para este projeto:
-  - banco gerenciado deles em MySQL
-  - banco externo de terceiro para apps Node
-- como o projeto usa PostgreSQL, a decisao correta continua sendo manter o banco externo via `DATABASE_URL` no Neon
+Conclusao oficial derivada da web:
+- a linha correta para este projeto continua sendo a de `Node.js Web Apps` da Hostinger
+- a Hostinger continua aceitando app Node com banco externo de terceiro; portanto `PostgreSQL` via Neon continua valido
+- o Vite continua expondo no cliente apenas variaveis com prefixo `VITE_`
+- a documentacao atual de troubleshooting da Hostinger continua tratando `3000` como porta de referencia quando a app Node precisa ser ajustada manualmente
 
 3. Estado atual confirmado do sistema
 
 Produto e dominio funcional:
-- objetivo continua sendo controlar inventario, membros, emprestimos, devolucoes e historico auditavel de utensilios da igreja
-- o MVP operacional continua concentrado em:
+- objetivo: controlar inventario, membros, emprestimos, devolucoes e historico auditavel de utensilios da igreja
+- nucleo operacional atual:
   - `Itens`
   - `Membros`
   - `Emprestimos`
@@ -103,16 +104,30 @@ Frontend real confirmado:
   - `Pinia`
 - build de producao:
   - `npm run build`
-- preview de producao:
+- preview local:
   - `npm run preview`
 - roteamento:
   - `createWebHistory(import.meta.env.BASE_URL)`
-- base do deploy:
+- deploy estatico:
   - `vite.config.ts` nao define `base`, entao o padrao atual continua sendo `/`
-- API publicada no frontend:
-  - `ibg.utensilios.web\.env.production` ja existe com `VITE_API_BASE_URL=https://api.ibgutensilios.com.br`
+- variavel de producao do frontend:
+  - `ibg.utensilios.web\.env.production`
+  - `VITE_API_BASE_URL=https://api.ibgutensilios.com.br`
 - fallback local ainda existe no codigo:
   - `src\services\api.ts` usa `http://localhost:3001` apenas quando `VITE_API_BASE_URL` nao vier definida
+
+Baseline de responsividade do frontend em 2026-04-07:
+- foi criada uma fundacao compartilhada para as listas mobile e desktop:
+  - `src\components\crud\CrudListShell.vue`
+  - `src\components\crud\MobileCrudCard.vue`
+  - `src\components\crud\CrudIconDialog.vue`
+  - `src\composables\useResponsiveCrudList.ts`
+- as listas de `Membros`, `Itens`, `Emprestimos` e `Historico` passaram a usar a mesma fundacao compartilhada
+- o ganho pratico desta rodada foi:
+  - reduzir duplicacao estrutural
+  - padronizar search/header/panel
+  - melhorar o card mobile dedicado
+  - manter `QTable` com estrategia unica de responsividade
 
 Backend real confirmado:
 - stack atual:
@@ -146,7 +161,7 @@ Banco real confirmado:
 - `knexfile.js` e `src\db\knex.ts` removem `schema=` da string de conexao antes de entregar ao driver
 - `searchPath` e reaplicado pela configuracao do Knex
 - `db\scripts\ensure-public-schema.js` garante `public` antes das migrations
-- a verdade estrutural do banco hoje esta mais nas migrations de `ibg.utensilios.api\db\migrations` do que em DDLs antigos exportados
+- a verdade estrutural do banco hoje esta nas migrations e seeds atuais, nao em DDL exportado antigo
 
 Autenticacao real confirmada:
 - login vinculado a `membros`
@@ -198,9 +213,9 @@ Mapeamento seguro da API na Hostinger:
 - se o painel pedir arquivo de entrada direto:
   - usar `index.js`
 - Node.js:
-  - `20.x` continua a opcao mais segura porque esta suportada oficialmente pela Hostinger e alinhada ao `engines` do repositorio
+  - `20.x` continua a opcao mais segura porque esta alinhada ao `engines` do repositorio e a linha atual da Hostinger
 - o arquivo `index.js` da raiz apenas inicializa logs e carrega o runtime real em `dist\src\server.js`
-- em apps Node gerenciadas pela Hostinger, os arquivos de build do backend ficam fora de `public_html`; portanto o lugar de verificacao do backend nao e o mesmo do frontend estatico
+- em apps Node gerenciadas pela Hostinger, o backend nao deve ser tratado como se rodasse dentro de `public_html`
 
 Build local correto antes de gerar ZIP:
 - API:
@@ -213,7 +228,7 @@ Build local correto antes de gerar ZIP:
 Banco de producao:
 - manter PostgreSQL externo via Neon
 - nao migrar para banco gerenciado da Hostinger por impulso
-- a documentacao oficial atual da Hostinger para esse fluxo confirma suporte proprio a MySQL; por isso o PostgreSQL do projeto deve continuar externo
+- a confirmacao oficial atual de banco externo para app Node mantem essa arquitetura valida
 
 5. Variaveis de ambiente realmente relevantes
 
@@ -227,27 +242,28 @@ Frontend:
 API - obrigatorias no codigo atual:
 - `DATABASE_URL`
 - `JWT_SECRET`
-
-API - obrigatoria por seguranca operacional:
 - `CORS_ORIGINS`
-  - usar pelo menos:
-    - `https://ibgutensilios.com.br,https://www.ibgutensilios.com.br`
-  - se o dominio da API tambem precisar ser aceito em alguma frente publica futura, adicionar de forma explicita
 
-API - opcional/controlada pelo ambiente:
-- `PORT`
-  - o codigo usa `process.env.PORT ?? 3001`
-  - conclusao pratica:
-    - se a Hostinger injetar `PORT`, o codigo ja respeita
-    - `3001` hoje e apenas fallback do codigo e referencia local
-    - nao endurecer o deploy em torno de porta fixa sem erro real da conta
+API - recomendadas em producao:
+- `CORS_ORIGINS=https://ibgutensilios.com.br,https://www.ibgutensilios.com.br`
+
+API - porta:
+- o codigo continua usando `process.env.PORT ?? 3001`
+- isso significa:
+  - `3001` continua sendo fallback local seguro para desenvolvimento
+  - se a Hostinger injetar `PORT`, a API ja respeita o valor do ambiente
+  - se a conta exigir configuracao manual de `PORT`, a referencia oficial atual da Hostinger puxa para `3000`
+- conclusao pratica:
+  - em producao, preferir `PORT` entregue pela plataforma
+  - se for necessario registrar manualmente no painel por causa de erro real da conta, usar `3000`
+  - nao confundir o fallback local `3001` com exigencia de producao da Hostinger
 
 API - usadas apenas em seed controlado:
 - `SEED_ADMIN_EMAIL`
 - `SEED_ADMIN_PASSWORD`
 - `SEED_INCLUDE_SAMPLE_DATA`
 
-Variaveis citadas em documentos antigos, mas nao localizadas no codigo atual:
+Variaveis citadas em documentos antigos, mas nao encontradas no codigo atual:
 - `WEB_BASE_URL`
 - `RECOVERY_PASSWORD_URL`
 
@@ -255,74 +271,66 @@ Conclusao sobre essas duas variaveis:
 - hoje elas nao devem bloquear o deploy
 - se uma frente futura de recuperacao de senha for aberta, elas podem voltar a ser necessarias
 
-6. Alertas importantes encontrados nesta releitura
+6. Alertas importantes que continuam valendo
 
-Alerta 1 - divergencia entre documentacao antiga e codigo atual da API:
-- alguns documentos antigos ainda falam como se o painel fosse apontar diretamente para `dist\src\server.js`
-- o codigo atual, os artefatos e o pacote da API ja foram adaptados para `index.js` como entrada mais compativel
-- a partir desta data, este arquivo passa a ser a referencia principal para esse ponto
+Alerta 1 - entrada da API:
+- documentos antigos ainda falam como se o painel fosse apontar diretamente para `dist\src\server.js`
+- a baseline atual do projeto e:
+  - `index.js` como entrypoint
+  - `dist\src\server.js` como runtime real carregado pelo entrypoint
 
-Alerta 2 - `validarDev.ps1` nao recompila mais TypeScript da API:
-- o script ainda escreve `Compilando a API`
-- porem ele chama `npm run build`
-- hoje `npm run build` na API executa apenas `node hostinger-stage.js build`
-- a compilacao TypeScript real esta em `npm run build:ts`
-- implicacao:
-  - `validarDev.ps1` continua bom para:
-    - validar isolamento dos `.env` locais
-    - rodar migrations locais
-    - subir `dist\src\server.js`
-    - validar `/health`
-    - validar `vite preview`
-  - mas ele nao prova sozinho uma nova transpilacao da API
-- proxima acao tecnica recomendada:
-  - alinhar `validarDev.ps1` com `npm run build:ts` antes de trata-lo como gate unico de compilacao da API
+Alerta 2 - compilacao da API:
+- `validarDev.ps1` ainda ajuda muito, mas hoje nao substitui uma nova transpilacao TypeScript da API
+- a compilacao fresca da API continua em:
+  - `npm run build:ts`
 
 Alerta 3 - CORS vazio libera qualquer origem:
-- pelo comportamento atual de `src\app.ts`, producao nao pode subir com `CORS_ORIGINS` vazio
+- producao nao pode subir com `CORS_ORIGINS` vazio
 
-Alerta 4 - DDL exportado nao e a melhor fonte de verdade:
-- `docs\scripts_banco\Banco_Estrutura_DDL_utensilios_v2.txt` ajuda como referencia historica
-- porem o estado estrutural mais confiavel hoje esta nas migrations e seeds atuais
+Alerta 4 - banco:
+- `docs\scripts_banco\Banco_Estrutura_DDL_utensilios_v2.txt` pode ajudar como referencia historica
+- porem o estado estrutural mais confiavel esta nas migrations e seeds atuais
 
-Alerta 5 - documentacao oficial da Hostinger precisa ser lida no produto certo:
-- existem paginas antigas e genericas de hospedagem Node
-- para este projeto, a linha correta e a de `Node.js Web Apps`
-- em caso de conflito, prevalecem:
-  - o codigo real do repositorio
-  - os artefatos locais validados
-  - as paginas atuais de `hostinger.com/support` para Node.js Web Apps
+Alerta 5 - documentacao oficial da Hostinger:
+- em caso de conflito, prevalecem nesta ordem:
+  1. codigo real do `Utensilios`
+  2. este `docs\configuracoes.txt`
+  3. checkpoint atualizado
+  4. paginas atuais de `hostinger.com/support` para `Node.js Web Apps`
 
-7. Validacoes objetivas executadas em 2026-04-06
+Alerta 6 - porta de producao:
+- os documentos antigos do proprio projeto ainda mencionam `PORT=3001`
+- isso deve ser tratado hoje como referencia local
+- para Hostinger, a leitura atual mais segura e:
+  - deixar a plataforma fornecer `PORT`
+  - ou usar `3000` apenas se a conta exigir configuracao manual explicita
 
-Validacao local completa:
+7. Validacoes objetivas executadas nesta rodada
+
+Backup fisico antes da nova frente:
+- pasta de destino:
+  - `C:\temp\Joao\Utensilios_backup_20260407_114527`
+- conferencia:
+  - mesma contagem de arquivos e diretorios da origem
+
+Snapshot Git antes da mudanca do frontend:
+- commit:
+  - `02f44c5 chore: checkpoint before mobile responsiveness work`
+- push:
+  - `origin/master`
+
+Validacao do frontend apos a nova fundacao de responsividade:
 - comando:
-  - `powershell -ExecutionPolicy Bypass -File .\validarDev.ps1`
+  - `npm run build` em `ibg.utensilios.web`
 - resultado:
-  - isolamento dos `.env` locais validado
-  - migrations locais sem pendencia
-  - API respondeu `200` em `http://127.0.0.1:3001/health`
-  - preview da web respondeu `200` em `http://127.0.0.1:4173`
+  - `vue-tsc --build` concluido com sucesso
+  - `vite build` concluido com sucesso
 
-Geracao oficial de artefatos:
-- comando:
-  - `powershell -ExecutionPolicy Bypass -File .\docs\hostinger\build_hostinger_artifacts.ps1`
-- resultado:
-  - API compilada localmente com `npm run build:ts`
-  - frontend compilado localmente com `npm run build`
-  - ZIPs regenerados com sucesso
-
-Regra operacional confirmada nesta rodada:
+Regra operacional confirmada:
 - nao executar `validarDev.ps1` e `docs\hostinger\build_hostinger_artifacts.ps1` em paralelo
 - motivo:
   - ambos limpam e recriam `ibg.utensilios.web\dist`
-  - a execucao concorrente pode gerar falso negativo de build no frontend sem indicar defeito real da base
-
-Hashes SHA256 desta rodada:
-- `docs\hostinger\ibg.utensilios.web-public_html.zip`
-  - `CE86EACB32DA0A1C1170167AE0B50E73AA8F07DA36B43E169B23800169EF4AB2`
-- `docs\hostinger\ibg.utensilios.api-hostinger.zip`
-  - `44EBE8BED8B5D78C38C42500BE8F6A0C27A8A54065F3838DA44FBBB1E1B1F15F`
+  - a execucao concorrente pode gerar falso negativo de build
 
 8. Sequencia segura para o proximo deploy real
 
@@ -339,7 +347,7 @@ Hashes SHA256 desta rodada:
 - `DATABASE_URL`
 - `JWT_SECRET`
 - `CORS_ORIGINS`
-- `PORT` apenas se a conta realmente exigir ou se nao vier do proprio ambiente
+- `PORT` apenas se a plataforma nao entregar esse valor automaticamente ou se a conta exigir configuracao manual
 
 4. Publicar a API primeiro:
 - subir `ibg.utensilios.api-hostinger.zip`
@@ -370,36 +378,30 @@ Hashes SHA256 desta rodada:
 - atualizar `docs\deploy\HISTORICO_HOSTINGER.md`
 - se a baseline mudar, atualizar este arquivo
 
-9. Ordem de confianca para decisao
+9. Resumo final
 
-1. codigo real do `Utensilios`
-2. este `docs\configuracoes.txt`
-3. `docs\backlog_frontend\checkpoint_retorno.md`
-4. `docs\deploy\GUIA_PUBLICACAO_HOSTINGER.md`
-5. memoria informal ou diagnostico automatico do painel
-
-10. Resumo final
-
-Hoje o `Utensilios` ja tem:
-- frontend real publicado por build estatico
-- API real com healthcheck
-- dominios definidos
-- `.env.production` do frontend criado
-- artefatos de Hostinger gerados localmente
-- validacao local ponta a ponta concluida nesta rodada
-
-A baseline segura de publicacao continua sendo:
-- frontend estatico em `public_html`
+Hoje o `Utensilios` tem como baseline segura:
+- frontend Vite estatico em `public_html`
 - API Node separada em `api.ibgutensilios.com.br`
 - `index.js` como entrada da app Node
 - `dist\src\server.js` como runtime real carregado pelo entrypoint
 - PostgreSQL externo via `DATABASE_URL`
 - `CORS_ORIGINS` preenchido explicitamente
-- logs reais acima do painel
+- `build:ts` local para a API
+- logs `hostinger-stages.log` e `startup.log` como fonte de diagnostico real
 
-O principal cuidado novo encontrado nesta releitura foi este:
-- `validarDev.ps1` ainda ajuda muito, mas ja nao recompila a API porque o script `build` do backend mudou
+O principal refinamento novo confirmado nesta releitura foi:
+- `PORT=3001` deve continuar sendo tratado como fallback local do codigo
+- para Hostinger, a referencia oficial atual aponta para `3000` quando o valor precisa ser configurado manualmente
+- portanto a estrategia segura e nao endurecer producao em cima do fallback local
+
+O principal refinamento novo do frontend foi:
+- a fundacao compartilhada das listas mobile ja foi aplicada nas quatro listas principais
+- isso reduz retrabalho e diminui risco de regressao nas proximas ondas de responsividade
 
 Proximo passo correto:
-- usar esta baseline para o deploy controlado
-- e, em paralelo, alinhar o gate de validacao local da API com `build:ts`
+- continuar a Fase 3 do plano de responsividade:
+  - `RSP-0301`
+  - `RSP-0302`
+  - `RSP-0303`
+- e, em paralelo, alinhar `validarDev.ps1` com `npm run build:ts` se essa frente de deploy voltar a ser aberta
