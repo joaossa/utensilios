@@ -1,7 +1,29 @@
 # Checkpoint de Retorno Frontend Utensilios
 
-Atualizado em: 2026-04-03
+Atualizado em: 2026-04-06
 Status da parada: segura para retomada
+
+## Parada imediata para reinicio
+
+- contexto encerrado com seguranca em:
+  - [docs\aprendizado_frontend\README.md](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\aprendizado_frontend\README.md)
+  - [docs\aprendizado_frontend\melhores_praticas_frontend.md](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\aprendizado_frontend\melhores_praticas_frontend.md)
+  - [docs\aprendizado_frontend\mapeamento_sarah_git.md](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\aprendizado_frontend\mapeamento_sarah_git.md)
+  - [docs\aprendizado_frontend\fontes_publicas_e_github.md](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\aprendizado_frontend\fontes_publicas_e_github.md)
+- ultima frente concluida:
+  - varredura cirurgica da base `J:\DEVELOPER_Projects\SourceControl_NovaEstrutura\Sarah\_git`
+  - cruzamento com fontes publicas atuais de Vue, Quasar, Vite, Pinia, Query, testes e responsividade
+  - consolidacao de uma documentacao mais forte que a do `cecom_v1`
+- sintese do que ficou decidido:
+  - a melhor linha para proximas evolucoes do frontend continua sendo `Vue 3 + Vite + Quasar 2 + TypeScript + Pinia + Query + Vitest`
+  - evitar nova base em `Vue 2 + Vuex + Quasar 1`
+  - priorizar `boot files`, wrappers reutilizaveis de tabela/formulario e responsividade por breakpoint em vez de `vh/vw` excessivo
+- proximo passo sugerido para retomada:
+  - transformar essa pesquisa em um checklist objetivo de adocao para o proprio `Utensilios`, separando:
+    - `adotar agora`
+    - `extrair depois`
+    - `evitar`
+- nenhum ajuste funcional novo ficou pela metade nesta parada
 
 ## Onde paramos
 
@@ -40,6 +62,36 @@ Status da parada: segura para retomada
   - [.htaccess](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\hostinger\.htaccess)
 
 ## Trabalho concluido nesta rodada
+
+- `DOCS-APR-001`:
+  - foi assumido o perfil de analista de sistemas orientado a `JS`, `TS`, `Vue`, `Quasar`, `Node` e arquitetura de frontend
+  - a base `J:\DEVELOPER_Projects\SourceControl_NovaEstrutura\Sarah\_git` foi varrida com foco em projetos Vue/Quasar/Vite
+  - foram mapeados `63` frontends/pacotes relevantes, com destaque para:
+    - `25` projetos em Vue 3
+    - `18` projetos em Vue 2
+    - `46` projetos com Quasar
+    - `20` projetos com Pinia
+    - `15` projetos com Vue Query ou TanStack Query
+    - `13` projetos com Vitest
+  - a leitura confirmou uma linha moderna recorrente em projetos Sarah mais maduros:
+    - `Vue 3 + Vite + Quasar 2 + Pinia + Query + TypeScript + Vitest`
+  - tambem foram cruzadas fontes publicas atuais de:
+    - Vue
+    - Pinia
+    - Quasar
+    - Vite
+    - TanStack Query
+    - Vitest
+    - Playwright
+    - web.dev
+    - MDN
+    - GitHub publico
+  - foi criada uma nova documentacao consolidada em:
+    - [README.md](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\aprendizado_frontend\README.md)
+    - [melhores_praticas_frontend.md](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\aprendizado_frontend\melhores_praticas_frontend.md)
+    - [mapeamento_sarah_git.md](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\aprendizado_frontend\mapeamento_sarah_git.md)
+    - [fontes_publicas_e_github.md](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\aprendizado_frontend\fontes_publicas_e_github.md)
+  - essa frente nao alterou regra de negocio do sistema; o foco foi gerar uma base de referencia mais forte para proximas evolucoes do frontend
 
 - `LOGIN-003`:
   - a tela de login foi refatorada para um fluxo em duas etapas, orientado pelas referencias visuais compartilhadas
@@ -269,6 +321,134 @@ Status da parada: segura para retomada
       - `48F057C3FA48A83A2068E3CD6930F2DD8485D84A5E029A1B2657AEDDF4D97379`
     - `ibg.utensilios.api-hostinger.zip`
       - `084F6FFC60C73F11436982460F7B0ACEC60A5B311B08474160E9DD4BE66C4DCF`
+
+- `RSP-DOC-001`:
+  - foi feita leitura cirurgica do projeto de referencia:
+    - `D:\DEVELOPER_Projects\SourceControl_NovaEstrutura\Sarah\_git\Sarah.CatalogoSistemas\Sarah.CatalogoSistemas.Web`
+  - a leitura cruzou principalmente:
+    - `src/pages/Index.vue`
+    - `src/components/Sistemas.vue`
+    - `src/components/SistemasFavoritos.vue`
+    - `src/components/ListaSistemas.vue`
+    - `src/components/CardSistema.vue`
+    - `src/components/CardSistemaToolbar.vue`
+    - `src/components/Hero.vue`
+    - `src/layouts/main.vue`
+    - `src/boot/configPlataforma.js`
+  - o objetivo foi identificar o que faz o app de referencia parecer forte no celular sem copiar literalmente tecnicas legadas de `Vue 2 + Quasar 1`
+  - o `Utensilios` foi relido com foco em responsividade atual, principalmente em:
+    - `DashboardView.vue`
+    - `LoginView.vue`
+    - `ItensView.vue`
+    - `ItensListView.vue`
+    - `MembrosView.vue`
+    - `MembrosListView.vue`
+    - `EmprestimosView.vue`
+    - `EmprestimosListView.vue`
+    - `HistoricoView.vue`
+    - `HistoricoListView.vue`
+    - `ItemImagensView.vue`
+  - conclusao principal da rodada:
+    - o `Utensilios` ja esta bom no mobile
+    - o maior ganho futuro nao esta em mais remendos por tela
+    - o maior ganho esta em extrair primitives responsivas compartilhadas para listas, formularios e shell interno
+  - licoes corretas aproveitadas da referencia:
+    - separar melhor experiencia desktop e mobile
+    - usar bloco mobile proprio quando a tabela comprimida perde clareza
+    - repetir poucas unidades visuais fortes
+    - privilegiar fluxo vertical, acoes objetivas e alcance do polegar
+  - pontos da referencia que nao devem ser copiados literalmente:
+    - `platform.is.mobile` como regra principal global
+    - mixin global antigo
+    - alturas fixas como `calc(100vh - 195px)`
+    - padroes estruturais de `Vue 2 + Quasar 1`
+  - foi criado o documento de backlog e tasks para esta frente em:
+    - [responsividade_mobile_utensilios_plano.md](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\backlog_frontend\responsividade_mobile_utensilios_plano.md)
+  - nenhuma alteracao funcional foi aplicada na interface nesta rodada
+
+- `CONFIG-007`:
+  - perfis relidos e reassumidos em conjunto novamente nesta instancia em `2026-04-06`
+  - a leitura foi refeita na ordem pedida, restrita ao proprio `Utensilios` e aos perfis autorizados
+  - o estado documental foi confrontado mais uma vez com o codigo real e com os artefatos atuais de Hostinger
+  - a confirmacao externa foi refeita com a linha oficial atual de `Node.js Web Apps` da Hostinger, incluindo:
+    - setup da app Node
+    - selecao de versao do Node
+    - migracao por ZIP
+    - variaveis de ambiente
+    - redeploy
+    - dominio customizado
+  - [configuracoes.txt](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\configuracoes.txt) foi atualizado para registrar:
+    - consolidacao em `2026-04-06`
+    - suporte oficial atual da Hostinger a `18.x`, `20.x`, `22.x` e `24.x`
+    - `20.x` como opcao mais segura para este repositorio
+    - observacao de que apps Node gerenciadas pela Hostinger mantem o backend fora de `public_html`
+    - regra operacional de nao executar `validarDev.ps1` e `docs/hostinger/build_hostinger_artifacts.ps1` em paralelo
+    - hashes atuais dos artefatos
+  - validacoes objetivas executadas nesta rodada:
+    - `powershell -ExecutionPolicy Bypass -File .\docs\hostinger\build_hostinger_artifacts.ps1`
+    - `powershell -ExecutionPolicy Bypass -File .\validarDev.ps1`
+  - resultado validado nesta rodada:
+    - os artefatos foram gerados novamente com sucesso
+    - a API respondeu `200` em `/health` local
+    - o preview da web respondeu `200` em `localhost:4173`
+    - o ambiente local seguiu seguro para retomada
+  - hashes atuais registrados em `docs\configuracoes.txt`:
+    - `ibg.utensilios.web-public_html.zip`
+      - `CE86EACB32DA0A1C1170167AE0B50E73AA8F07DA36B43E169B23800169EF4AB2`
+    - `ibg.utensilios.api-hostinger.zip`
+      - `44EBE8BED8B5D78C38C42500BE8F6A0C27A8A54065F3838DA44FBBB1E1B1F15F`
+  - achado operacional novo desta rodada:
+    - a execucao concorrente de `validarDev.ps1` com `docs/hostinger/build_hostinger_artifacts.ps1` pode provocar falso negativo de build no frontend por disputa sobre `ibg.utensilios.web/dist`
+
+- `CONFIG-006`:
+  - perfis relidos e reassumidos em conjunto novamente nesta instancia
+  - a leitura documental foi refeita na ordem pedida, agora inteiramente dentro do proprio `Utensilios`:
+    - `docs/aprendizado_frontend`
+    - `docs/backlog_frontend`
+    - `docs/hostinger`
+    - `docs/deploy`
+    - `docs/historico`
+    - `docs/Espeficicacao_Projeto.txt`
+    - `docs/backlog_frontend/checkpoint_retorno.md`
+  - o estado documental foi confrontado com o codigo real atual em:
+    - `ibg.utensilios.web/.env.production`
+    - `ibg.utensilios.web/src/services/api.ts`
+    - `ibg.utensilios.api/package.json`
+    - `ibg.utensilios.api/index.js`
+    - `ibg.utensilios.api/hostinger-stage.js`
+    - `ibg.utensilios.api/src/app.ts`
+    - `ibg.utensilios.api/src/server.ts`
+    - `ibg.utensilios.api/knexfile.js`
+    - `docs/hostinger/build_hostinger_artifacts.ps1`
+  - confirmacao externa refeita com documentacao oficial atual da Hostinger e do Vite
+  - [configuracoes.txt](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\configuracoes.txt) foi reescrito para virar baseline autonoma do projeto e registrar:
+    - identidade operacional desta instancia
+    - escopo autorizado de atuacao
+    - baseline atual de frontend, API, banco e dominios
+    - diferenca entre `index.js` como entrada e `dist/src/server.js` como runtime real
+    - regra de seguranca de `CORS_ORIGINS`
+    - fontes oficiais atuais da Hostinger e do Vite
+    - hashes atuais dos artefatos de Hostinger
+    - sequencia segura para o proximo deploy real
+  - achados importantes desta releitura:
+    - `validarDev.ps1` hoje ainda chama `npm run build` na API, mas esse script ja nao transpila TypeScript
+    - `CORS_ORIGINS` vazio deixa a API aberta para qualquer origem no comportamento atual
+    - `WEB_BASE_URL` e `RECOVERY_PASSWORD_URL` seguem citados em documentos antigos, mas nao foram localizados no codigo atual
+    - o DDL exportado de banco ja nao e a melhor fonte de verdade frente as migrations atuais
+  - validacoes objetivas executadas nesta rodada:
+    - `powershell -ExecutionPolicy Bypass -File .\validarDev.ps1`
+    - `powershell -ExecutionPolicy Bypass -File .\docs\hostinger\build_hostinger_artifacts.ps1`
+  - resultado validado nesta rodada:
+    - API respondeu `200` em `/health` local
+    - preview da web respondeu `200` em `localhost:4173`
+    - migrations locais ficaram sem pendencia
+    - ZIP do frontend gerado novamente com sucesso
+    - ZIP da API gerado novamente com sucesso
+  - hashes atuais registrados em `docs\configuracoes.txt`:
+    - `ibg.utensilios.web-public_html.zip`
+      - `82D146CDC9EF7B2473ABB752FE90B34E8CA75AAFEF8B840B66538737D80403AC`
+    - `ibg.utensilios.api-hostinger.zip`
+      - `626AF62BA8D2B221928A72FB10E3A14BD3A4737E2A7C61BA7CECF573ECC6BA51`
 
 - `CONFIG-004`:
   - perfis relidos e reassumidos em conjunto para esta instancia
@@ -559,16 +739,23 @@ Status da parada: segura para retomada
 - frente funcional:
   - validar manualmente o fluxo ponta a ponta dos quatro modulos em `localhost`
   - endurecer regras, UX e consistencia dos CRUDs ja criados
+- frente de responsividade:
+  - revisar o plano em [responsividade_mobile_utensilios_plano.md](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\backlog_frontend\responsividade_mobile_utensilios_plano.md)
+  - decidir se a implementacao vai comecar pela fundacao compartilhada ou por um piloto em `MembrosListView.vue`
 - frente tecnica paralela:
-  - abrir `DEPLOY-001` para transformar a baseline documental revalidada em 2026-04-02 na configuracao real de producao
+  - abrir `DEPLOY-001` para transformar a baseline documental revalidada em 2026-04-06 na configuracao real de producao
+  - alinhar `validarDev.ps1` com `npm run build:ts` para a API voltar a ter validacao de compilacao fresca
 - ordem recomendada:
-  - 1. validar `Itens`, `Membros`, `Emprestimos` e `Historico` com fluxo real
-  - 2. revisar mensagens de erro, protecao de sessao e tratamento de `401`
-  - 3. criar `ibg.utensilios.web/.env.production`
-  - 4. definir dominio da web e subdominio da API
-  - 5. decidir e ensaiar a estrategia de migrations no banco de producao
-  - 6. executar a primeira publicacao controlada
-  - 7. so depois congelar a estrategia vencedora do primeiro deploy
+  - 1. revisar e aprovar o plano de responsividade mobile
+  - 2. decidir se o piloto sera `MembrosListView.vue`
+  - 3. validar `Itens`, `Membros`, `Emprestimos` e `Historico` com fluxo real
+  - 4. revisar mensagens de erro, protecao de sessao e tratamento de `401`
+  - 5. manter `ibg.utensilios.web/.env.production` como baseline oficial e revisar somente se o dominio mudar
+  - 6. decidir e ensaiar a estrategia de migrations no banco de producao
+  - 7. executar a primeira publicacao controlada da API
+  - 8. validar `/health`, logs reais e CORS
+  - 9. publicar o frontend
+  - 10. so depois congelar a estrategia vencedora do primeiro deploy
 
 ## Como retomar com seguranca
 
@@ -576,6 +763,7 @@ Status da parada: segura para retomada
   - [Espeficicacao_Projeto.txt](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\Espeficicacao_Projeto.txt)
   - [configuracoes.txt](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\configuracoes.txt)
   - [checkpoint_retorno.md](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\backlog_frontend\checkpoint_retorno.md)
+  - [responsividade_mobile_utensilios_plano.md](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\backlog_frontend\responsividade_mobile_utensilios_plano.md)
 - depois abrir:
   - [README.md](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\deploy\README.md)
   - [CHECKLIST.md](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\deploy\CHECKLIST.md)
@@ -585,7 +773,7 @@ Status da parada: segura para retomada
   - [202603310001_link_auth_to_membros.js](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\ibg.utensilios.api\db\migrations\202603310001_link_auth_to_membros.js)
 - validar novamente com:
   - `npm run build` em `ibg.utensilios.web`
-  - `npm run build` em `ibg.utensilios.api`
+  - `npm run build:ts` em `ibg.utensilios.api`
   - `npm run test:unit -- LoginView` em `ibg.utensilios.web`
   - `curl http://localhost:3001/health`
   - `.\iniciarDev.ps1`
@@ -694,6 +882,7 @@ Status da parada: segura para retomada
 - o principal risco estrutural anterior era a ausencia de backend real, e isso deixou de ser o bloqueio principal
 - a autenticacao agora esta no lugar correto do dominio, vinculada a `membros`
 - o banco local esta pronto para evolucao funcional sem reabrir a base de autenticacao
+- `validarDev.ps1` e `docs/hostinger/build_hostinger_artifacts.ps1` devem rodar em sequencia, nunca em paralelo
 - a proxima convergencia natural entre produto, frontend e backend esta em:
   - consolidar os CRUDs
   - fechar a baseline de deploy para Hostinger

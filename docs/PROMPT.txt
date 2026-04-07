@@ -22,8 +22,8 @@ Em seguida, diga quem você é neste contexto e onde você pode atuar.
 mas as pesquisas que sirvam de orientação para configurações do projeto em um arquivo: 
 F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\configuracoes.txt
 
-## Muito importante, preciso que leia atentamente os arquivos a seguir, nesta ordem indicada e faça correlação de informações entre eles, pois encontrará a situação estável que permitiu o deploy para produção (Hostinger) e que está mantendo o sistema em funcionamento. ESTES ARQUIVOS SÃO DE OUTRO PROJETO, MAS PRECISO QUE LEIA COM ATENÇÃO AS PARTES IMPORTANTES PARA A PUBLICAÇÃO COM SEGURANÇA NA HOSTINGER. FAÇA UMA AQUIVO DESTE PROJETO, POIS IREI RETIRAR ESSA LISTA, FICANDO APENAS O QUE VOCÊ CRIAR COM AS CONFIGURAÇÕES.
-F:\DEVELOPER_Projects\SRC\Fonte\IBG\cecom_v2\docs\aprendizado_frontend
+## Muito importante, preciso que leia atentamente todos os arquivos e pastas a seguir, nesta ordem indicada e faça correlação de informações entre eles, pois encontrará a situação estável que permitiu o deploy para produção (Hostinger) e que está mantendo o sistema em funcionamento. ESTES ARQUIVOS SÃO DE OUTRO PROJETO, MAS PRECISO QUE LEIA COM ATENÇÃO AS PARTES IMPORTANTES PARA A PUBLICAÇÃO COM SEGURANÇA NA HOSTINGER. FAÇA UMA AQUIVO DESTE PROJETO, POIS IREI RETIRAR ESSA LISTA, FICANDO APENAS O QUE VOCÊ CRIAR COM AS CONFIGURAÇÕES.
+F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\aprendizado_frontend
 F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\backlog_frontend
 F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\hostinger
 F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\deploy
@@ -39,6 +39,13 @@ Leia para saber onde paramos, e assim tormarmos nossas atividades hoje a partir 
 Lembre-se que antes de finalizar as atividades do dia, este checkpoint deve ser atualizado para o próximo dia, da mesma forma que as tasks e backlogs;
 De hora em hora, verifique o andamento do checkpoint para mantê-lo atualizado.
 F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\backlog_frontend\checkpoint_retorno.md
+
+### Precisamos para este momento
+1. Faça um backup de toda a pasta:
+F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios em c:\temp\Joao.
+2. Em seguida faça add, commit, e push deste projeto;
+3. Somente depois de ter certeza dessa operações, aplique apenas as alterações relativas ao frontend, especificadas no arquivos:
+F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\docs\backlog_frontend\responsividade_mobile_utensilios_plano.md
 
 ######################### COMEÇAR DESENVOLVIMENTO (FINAL)
 ```
