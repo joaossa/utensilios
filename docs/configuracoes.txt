@@ -280,7 +280,8 @@ Alerta 1 - entrada da API:
   - `dist\src\server.js` como runtime real carregado pelo entrypoint
 
 Alerta 2 - compilacao da API:
-- `validarDev.ps1` ainda ajuda muito, mas hoje nao substitui uma nova transpilacao TypeScript da API
+- `validarDev.ps1` foi alinhado nesta rodada para chamar `npm run build:ts` na API antes da validacao temporaria de runtime
+- isso remove o falso positivo que existia quando o script apenas executava `npm run build`
 - a compilacao fresca da API continua em:
   - `npm run build:ts`
 
@@ -331,6 +332,11 @@ Regra operacional confirmada:
 - motivo:
   - ambos limpam e recriam `ibg.utensilios.web\dist`
   - a execucao concorrente pode gerar falso negativo de build
+- o `validarDev.ps1` agora:
+  - compila a API com `npm run build:ts`
+  - le a `PORT` do `.env.development.local`
+  - exige `200` real no `/health`
+  - usa area temporaria fora do repositorio para nao sujar a arvore Git
 
 8. Sequencia segura para o proximo deploy real
 
@@ -404,4 +410,4 @@ Proximo passo correto:
   - `RSP-0301`
   - `RSP-0302`
   - `RSP-0303`
-- e, em paralelo, alinhar `validarDev.ps1` com `npm run build:ts` se essa frente de deploy voltar a ser aberta
+- e, quando a frente de deploy voltar a abrir, usar o `validarDev.ps1` ja corrigido como gate local mais confiavel

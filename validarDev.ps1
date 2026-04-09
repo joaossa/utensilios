@@ -48,6 +48,29 @@ function Assert-LocalApiEnv {
   }
 }
 
+function Get-LocalApiPort {
+  param(
+    [string]$FilePath
+  )
+
+  $portValue = Get-EnvFileValue -FilePath $FilePath -Key "PORT"
+
+  if ([string]::IsNullOrWhiteSpace($portValue)) {
+    return 3001
+  }
+
+  $parsedPort = 0
+  if (-not [int]::TryParse($portValue, [ref]$parsedPort)) {
+    throw "PORT invalida em ${FilePath}: $portValue"
+  }
+
+  if ($parsedPort -lt 1 -or $parsedPort -gt 65535) {
+    throw "PORT fora da faixa valida em ${FilePath}: $parsedPort"
+  }
+
+  return $parsedPort
+}
+
 function Assert-LocalWebEnv {
   param(
     [string]$FilePath
@@ -67,6 +90,7 @@ function Assert-LocalWebEnv {
 function Wait-HttpOk {
   param(
     [string]$Url,
+    [int]$ExpectedStatusCode = 200,
     [int]$TimeoutSeconds = 30
   )
 
@@ -75,7 +99,7 @@ function Wait-HttpOk {
   while ((Get-Date) -lt $deadline) {
     try {
       $response = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec 2
-      if ($response.StatusCode -ge 200 -and $response.StatusCode -lt 500) {
+      if ($response.StatusCode -eq $ExpectedStatusCode) {
         return $response
       }
     }
@@ -87,9 +111,44 @@ function Wait-HttpOk {
   throw "Timeout aguardando resposta de $Url"
 }
 
+function Get-ChildProcessIds {
+  param(
+    [int]$ParentProcessId
+  )
+
+  $childIds = @()
+  $directChildren = Get-CimInstance Win32_Process -Filter "ParentProcessId = $ParentProcessId" -ErrorAction SilentlyContinue
+
+  foreach ($child in $directChildren) {
+    $childIds += $child.ProcessId
+    $childIds += Get-ChildProcessIds -ParentProcessId $child.ProcessId
+  }
+
+  return $childIds
+}
+
 function Stop-ProcessIfRunning($Process) {
-  if ($null -ne $Process -and -not $Process.HasExited) {
-    Stop-Process -Id $Process.Id -Force
+  if ($null -eq $Process) {
+    return
+  }
+
+  $targetIds = @()
+
+  try {
+    if (-not $Process.HasExited) {
+      $targetIds += Get-ChildProcessIds -ParentProcessId $Process.Id
+      $targetIds += $Process.Id
+    }
+  }
+  catch {}
+
+  $targetIds = $targetIds | Select-Object -Unique | Sort-Object -Descending
+
+  foreach ($processId in $targetIds) {
+    try {
+      Stop-Process -Id $processId -Force -ErrorAction Stop
+    }
+    catch {}
   }
 }
 
@@ -124,7 +183,7 @@ $apiDir = Join-Path $repoRoot "ibg.utensilios.api"
 $webDir = Join-Path $repoRoot "ibg.utensilios.web"
 $apiEnvPath = Join-Path $apiDir ".env.development.local"
 $webEnvPath = Join-Path $webDir ".env.development.local"
-$tmpRootDir = Join-Path $repoRoot ".tmp-dev-validation"
+$tmpRootDir = Join-Path ([System.IO.Path]::GetTempPath()) "utensilios-dev-validation"
 $tmpDir = Join-Path $tmpRootDir ([guid]::NewGuid().ToString())
 $apiStdout = Join-Path $tmpDir "api.stdout.log"
 $apiStderr = Join-Path $tmpDir "api.stderr.log"
@@ -132,6 +191,7 @@ $webStdout = Join-Path $tmpDir "web.stdout.log"
 $webStderr = Join-Path $tmpDir "web.stderr.log"
 $apiProcess = $null
 $webProcess = $null
+$apiPort = 3001
 
 Assert-FileExists -Path $apiEnvPath
 Assert-FileExists -Path $webEnvPath
@@ -139,14 +199,15 @@ Assert-FileExists -Path $webEnvPath
 Write-Step "Validando isolamento dos arquivos locais"
 Assert-LocalApiEnv -FilePath $apiEnvPath
 Assert-LocalWebEnv -FilePath $webEnvPath
+$apiPort = Get-LocalApiPort -FilePath $apiEnvPath
 
 New-Item -ItemType Directory -Force -Path $tmpDir | Out-Null
 
 try {
-  Write-Step "Compilando a API"
+  Write-Step "Compilando a API (TypeScript)"
   Push-Location $apiDir
   try {
-    npm run build
+    npm run build:ts
 
     if ($MigrarBanco) {
       Write-Step "Executando migrations do banco local"
@@ -175,7 +236,7 @@ try {
   ) -WorkingDirectory $apiDir -PassThru -WindowStyle Hidden -RedirectStandardOutput $apiStdout -RedirectStandardError $apiStderr
   Remove-Item Env:DOTENV_CONFIG_PATH -ErrorAction SilentlyContinue
 
-  $apiHealth = Wait-HttpOk -Url "http://127.0.0.1:3001/health"
+  $apiHealth = Wait-HttpOk -Url "http://127.0.0.1:$apiPort/health" -ExpectedStatusCode 200
   Write-Host "API respondeu em /health com status $($apiHealth.StatusCode)." -ForegroundColor Green
 
   Write-Step "Subindo preview da web para validacao"
@@ -190,7 +251,7 @@ try {
     "--strictPort"
   ) -WorkingDirectory $webDir -PassThru -WindowStyle Hidden -RedirectStandardOutput $webStdout -RedirectStandardError $webStderr
 
-  $webResponse = Wait-HttpOk -Url "http://127.0.0.1:4173"
+  $webResponse = Wait-HttpOk -Url "http://127.0.0.1:4173" -ExpectedStatusCode 200
   Write-Host "Web respondeu em localhost:4173 com status $($webResponse.StatusCode)." -ForegroundColor Green
 
   Write-Step "Validacao concluida"

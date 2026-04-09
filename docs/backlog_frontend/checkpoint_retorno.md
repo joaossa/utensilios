@@ -745,7 +745,7 @@ Status da parada: segura para retomada
   - deixar `EmprestimosView.vue` por ultimo, conforme o risco ja registrado no plano
 - frente tecnica paralela:
   - abrir `DEPLOY-001` para transformar a baseline documental revalidada em 2026-04-07 na configuracao real de producao
-  - alinhar `validarDev.ps1` com `npm run build:ts` para a API voltar a ter validacao de compilacao fresca
+  - usar o `validarDev.ps1` ja corrigido como gate local antes da nova rodada de deploy
 - ordem recomendada:
   - 1. validar `Itens`, `Membros`, `Emprestimos` e `Historico` com fluxo real apos a nova fundacao compartilhada das listas
   - 2. executar `RSP-0301`
@@ -881,6 +881,23 @@ Status da parada: segura para retomada
 
 ## Atualizacao desta rodada - 2026-04-07
 
+- `CONFIG-007`:
+  - a revisao tecnica de:
+    - [iniciarDev.ps1](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\iniciarDev.ps1)
+    - [validarDev.ps1](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\validarDev.ps1)
+    - [migrarProducao.ps1](F:\DEVELOPER_Projects\SRC\Fonte\IBG\Utensilios\migrarProducao.ps1)
+    confirmou que o principal ponto de risco estava em `validarDev.ps1`
+  - o script foi corrigido para:
+    - compilar a API com `npm run build:ts`
+    - ler a `PORT` do `.env.development.local`
+    - exigir `200` real no `/health` e no preview da web
+    - usar area temporaria fora do repositorio para nao deixar residuos rastreados no Git
+  - validacao objetiva executada nesta rodada:
+    - `powershell -ExecutionPolicy Bypass -File .\validarDev.ps1 -MigrarBanco:$false`
+  - resultado:
+    - API respondeu `200` em `/health`
+    - preview da web respondeu `200`
+    - o gate local voltou a refletir compilacao fresca da API
 - `RSP-0101`:
   - antes de qualquer alteracao nova foi criado backup integral do projeto em:
     - `C:\temp\Joao\Utensilios_backup_20260407_114527`
@@ -927,4 +944,4 @@ Status da parada: segura para retomada
 - `validarDev.ps1` e `docs/hostinger/build_hostinger_artifacts.ps1` devem rodar em sequencia, nunca em paralelo
 - a proxima convergencia natural entre produto, frontend e backend esta em:
   - padronizar os formularios internos pela Fase 3 do plano de responsividade
-  - alinhar `validarDev.ps1` com `npm run build:ts` se a frente de deploy voltar a abrir
+  - usar o `validarDev.ps1` corrigido sempre antes de abrir nova frente de deploy
